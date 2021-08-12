@@ -1,0 +1,6 @@
+[submodule "external/libwav"]
+	path = external/libwav
+	url = https://github.com/brglng/libwav.git
+[submodule "external/libsoundio"]
+	path = external/libsoundio
+	url = https://github.com/andrewrk/libsoundio.git
