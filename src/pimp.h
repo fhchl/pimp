@@ -26,4 +26,5 @@ LMSFilter *lms_new(size_t length, lms_t stepsize, lms_t leakage);
 void lms_destory(LMSFilter *self);
 void lms_set_w(LMSFilter* self, lms_t* w);
 void lms_update(LMSFilter *self, lms_t* xbuf, lms_t e);
-lms_t lms_predict(LMSFilter *self, lms_t *xbuf);
+lms_t lms_predict(LMSFilter *self, lms_t* xbuf);
+void lms_train(LMSFilter *self, lms_t* x, lms_t* y);

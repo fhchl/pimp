@@ -5,9 +5,8 @@ enable_testing()
 
 add_subdirectory(external/libwav)
 
-include_directories(tests) # to include unity_config.h
-add_definitions(-DUNITY_INCLUDE_CONFIG_H)
 add_subdirectory(external/Unity)
+target_compile_definitions(unity PUBLIC -DUNITY_INCLUDE_DOUBLE)
 
 add_executable(${PROJECT_NAME} src/pimp.c src/main.c)
 target_link_libraries(${PROJECT_NAME} wav::wav m)

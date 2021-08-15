@@ -146,3 +146,21 @@ void lms_update(LMSFilter *self, lms_t* xbuf, lms_t e)
         self->w[i] += stepsize * e * xbuf[i];
     }
 }
+
+void lms_train(LMSFilter *self, lms_t* xs, lms_t* ys, size_t length)
+{
+    AudioBuf* xbuf = audiobuf_new(0, self->length, calloc(self->length, sizeof(lms_t)));
+
+    lms_t y_hat, x, y, e;
+    for (size_t i = 0; i < length; i++)
+    {
+        x = xs[i];
+        y = ys[i];
+        audiobuf_left_extend(xbuf, x);
+        y_hat = lms_predict(self, xbuf->data);
+        e = y - y_hat;
+        lms_update(self, xbuf->data, e);
+    }
+
+    audiobuf_destroy(xbuf);
+}

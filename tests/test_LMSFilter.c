@@ -18,7 +18,6 @@ void TEST_ASSERT_DOUBLE_ARRAY_WITHIN(lms_t delta, lms_t* expected, lms_t* actual
 
 void test_LMSFilter_predict(void)
 {
-    uint samplerate = 100;
     size_t length = 2;
     lms_t w[] = {0, 0.5};
     LMSFilter* filt = lms_new(length, 0, 1);
@@ -26,7 +25,7 @@ void test_LMSFilter_predict(void)
 
     AudioBuf* x = audiobuf_from_wav("../tests/data/x.wav");
     AudioBuf* y = audiobuf_from_wav("../tests/data/y_1.wav");
-    AudioBuf* xbuf = audiobuf_new(samplerate, length, calloc(length, sizeof(lms_t)));
+    AudioBuf* xbuf = audiobuf_new(0, length, calloc(length, sizeof(lms_t)));
 
     lms_t y_hat;
     for (size_t i = 0; i < x->length; i++)
@@ -44,14 +43,13 @@ void test_LMSFilter_predict(void)
 
 void test_LMSFilter_update_predict(void)
 {
-    uint samplerate = 100;
     size_t length = 2;
     lms_t w[] = {0, 0.5};
     LMSFilter* filt = lms_new(length, 0.1, 1);
 
     AudioBuf* xs = audiobuf_from_wav("../tests/data/x.wav");
     AudioBuf* ys = audiobuf_from_wav("../tests/data/y_1.wav");
-    AudioBuf* xbuf = audiobuf_new(samplerate, length, calloc(length, sizeof(lms_t)));
+    AudioBuf* xbuf = audiobuf_new(0, length, calloc(length, sizeof(lms_t)));
 
     lms_t y_hat, x, y, e;
     for (size_t i = 0; i < xs->length; i++)
@@ -71,6 +69,42 @@ void test_LMSFilter_update_predict(void)
     audiobuf_destroy(xs);
     audiobuf_destroy(ys);
     audiobuf_destroy(xbuf);
+    lms_destory(filt);
+}
+
+void test_LMSFilter_train_0(void)
+{
+    size_t length = 2;
+    lms_t w_0[] = {0.5, 0};
+    LMSFilter* filt = lms_new(length, 0.1, 1);
+
+    AudioBuf* xs = audiobuf_from_wav("../tests/data/x.wav");
+    AudioBuf* ys = audiobuf_from_wav("../tests/data/y_0.wav");
+
+    lms_train(filt, xs->data, ys->data);
+
+    TEST_ASSERT_DOUBLE_ARRAY_WITHIN(1e-8, w_0, filt->w, length);
+
+    audiobuf_destroy(xs);
+    audiobuf_destroy(ys);
+    lms_destory(filt);
+}
+
+void test_LMSFilter_train_1(void)
+{
+    size_t length = 2;
+    lms_t w_1[] = { 0, 0.5 };
+    LMSFilter* filt = lms_new(length, 0.1, 1);
+
+    AudioBuf* xs = audiobuf_from_wav("../tests/data/x.wav");
+    AudioBuf* ys = audiobuf_from_wav("../tests/data/y_1.wav");
+
+    lms_train(filt, xs->data, ys->data);
+
+    TEST_ASSERT_DOUBLE_ARRAY_WITHIN(1e-8, w_1, filt->w, length);
+
+    audiobuf_destroy(xs);
+    audiobuf_destroy(ys);
     lms_destory(filt);
 }
 
