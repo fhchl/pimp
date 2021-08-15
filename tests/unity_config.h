@@ -1,0 +1,8 @@
+#ifndef UNITY_CONFIG_H
+#define UNITY_CONFIG_H
+
+#define UNITY_INCLUDE_DOUBLE
+//#define UNITY_DOUBLE_TYPE double
+//#define UNITY_FLOAT_PRECISION 0.0001
+
+#endif /* UNITY_CONFIG_H */
