@@ -7,7 +7,7 @@
 void setUp(void) {}
 void tearDown(void) {}
 
-void TEST_ASSERT_DOUBLE_ARRAY_WITHIN(lms_t delta, lms_t* expected, lms_t* actual, size_t num_elements)
+void TEST_ASSERT_DOUBLE_ARRAY_WITHIN(pfloat delta, pfloat* expected, pfloat* actual, size_t num_elements)
 {
     for (size_t i = 0; i < num_elements; i++)
     {
@@ -19,15 +19,15 @@ void TEST_ASSERT_DOUBLE_ARRAY_WITHIN(lms_t delta, lms_t* expected, lms_t* actual
 void test_LMSFilter_predict(void)
 {
     size_t length = 2;
-    lms_t w[] = {0, 0.5};
+    pfloat w[] = {0, 0.5};
     LMSFilter* filt = lms_new(length, 0, 1);
     lms_set_w(filt, w);
 
     AudioBuf* x = audiobuf_from_wav("../tests/data/x.wav");
     AudioBuf* y = audiobuf_from_wav("../tests/data/y_1.wav");
-    AudioBuf* xbuf = audiobuf_new(0, length, calloc(length, sizeof(lms_t)));
+    AudioBuf* xbuf = audiobuf_new(0, length, calloc(length, sizeof(pfloat)));
 
-    lms_t y_hat;
+    pfloat y_hat;
     for (size_t i = 0; i < x->length; i++)
     {
         audiobuf_left_extend(xbuf, x->data[i]);
@@ -44,14 +44,14 @@ void test_LMSFilter_predict(void)
 void test_LMSFilter_update_predict(void)
 {
     size_t length = 2;
-    lms_t w[] = {0, 0.5};
+    pfloat w[] = {0, 0.5};
     LMSFilter* filt = lms_new(length, 0.1, 1);
 
     AudioBuf* xs = audiobuf_from_wav("../tests/data/x.wav");
     AudioBuf* ys = audiobuf_from_wav("../tests/data/y_1.wav");
-    AudioBuf* xbuf = audiobuf_new(0, length, calloc(length, sizeof(lms_t)));
+    AudioBuf* xbuf = audiobuf_new(0, length, calloc(length, sizeof(pfloat)));
 
-    lms_t y_hat, x, y, e;
+    pfloat y_hat, x, y, e;
     for (size_t i = 0; i < xs->length; i++)
     {
         x = xs->data[i];
@@ -75,13 +75,13 @@ void test_LMSFilter_update_predict(void)
 void test_LMSFilter_train_0(void)
 {
     size_t length = 2;
-    lms_t w_0[] = {0.5, 0};
+    pfloat w_0[] = {0.5, 0};
     LMSFilter* filt = lms_new(length, 0.1, 1);
 
     AudioBuf* xs = audiobuf_from_wav("../tests/data/x.wav");
     AudioBuf* ys = audiobuf_from_wav("../tests/data/y_0.wav");
 
-    lms_train(filt, xs->data, ys->data);
+    lms_train(filt, xs->data, ys->data, xs->length);
 
     TEST_ASSERT_DOUBLE_ARRAY_WITHIN(1e-8, w_0, filt->w, length);
 
@@ -93,13 +93,13 @@ void test_LMSFilter_train_0(void)
 void test_LMSFilter_train_1(void)
 {
     size_t length = 2;
-    lms_t w_1[] = { 0, 0.5 };
+    pfloat w_1[] = { 0, 0.5 };
     LMSFilter* filt = lms_new(length, 0.1, 1);
 
     AudioBuf* xs = audiobuf_from_wav("../tests/data/x.wav");
     AudioBuf* ys = audiobuf_from_wav("../tests/data/y_1.wav");
 
-    lms_train(filt, xs->data, ys->data);
+    lms_train(filt, xs->data, ys->data, xs->length);
 
     TEST_ASSERT_DOUBLE_ARRAY_WITHIN(1e-8, w_1, filt->w, length);
 

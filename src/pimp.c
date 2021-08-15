@@ -1,8 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "wav.h"
+#include <tgmath.h>
 
-typedef double lms_t;
+#include "wav.h"
+#include "pimp.h"
 
 void check_error()
 {
@@ -25,24 +26,17 @@ void check_format(WavFile *fp)
     }
 }
 
-lms_t *float2lmst(float *arr, size_t len)
+pfloat *float2lmst(float *arr, size_t len)
 {
-    lms_t *ret = malloc(sizeof(lms_t) * len);
+    pfloat *ret = malloc(sizeof(pfloat) * len);
     for (int i = 0; i < len; i++)
     {
-        ret[i] = (lms_t)arr[i];
+        ret[i] = (pfloat)arr[i];
     }
     return ret;
 }
 
-typedef struct
-{
-    uint samplerate;
-    size_t length;
-    lms_t *data;
-} AudioBuf;
-
-AudioBuf *audiobuf_new(uint samplerate, size_t length, lms_t *data)
+AudioBuf *audiobuf_new(uint samplerate, size_t length, pfloat *data)
 {
     AudioBuf *buf = malloc(sizeof(AudioBuf));
     buf->data = data;
@@ -57,7 +51,7 @@ AudioBuf *audiobuf_from_wav(char *path)
     size_t length;
     uint samplerate;
     float *data_float;
-    lms_t *data;
+    pfloat *data;
     WavFile *fp;
 
     fp = wav_open(path, WAV_OPEN_READ);
@@ -86,7 +80,7 @@ void audiobuf_destroy(AudioBuf *buf)
     free(buf);
 }
 
-void audiobuf_left_extend(AudioBuf *buf, lms_t x)
+void audiobuf_left_extend(AudioBuf *buf, pfloat x)
 {
     // TODO: use memmove(&items[k+1], &items[k], (numItems-k-1)*sizeof(double));
     for (size_t i = buf->length - 1; i > 0; i--)
@@ -94,19 +88,10 @@ void audiobuf_left_extend(AudioBuf *buf, lms_t x)
     buf->data[0] = x;
 }
 
-typedef struct
-{
-    size_t length;
-    lms_t stepsize;
-    lms_t leakage;
-    lms_t *w;
-    lms_t eps;
-} LMSFilter;
-
-LMSFilter *lms_new(size_t length, lms_t stepsize, lms_t leakage)
+LMSFilter *lms_new(size_t length, pfloat stepsize, pfloat leakage)
 {
     LMSFilter *lms = malloc(sizeof(LMSFilter));
-    lms->w = calloc(length, sizeof(lms_t));
+    lms->w = calloc(length, sizeof(pfloat));
     lms->length = length;
     lms->stepsize = stepsize;
     lms->eps = 1e-8;
@@ -114,7 +99,7 @@ LMSFilter *lms_new(size_t length, lms_t stepsize, lms_t leakage)
     return lms;
 }
 
-void lms_set_w(LMSFilter* self, lms_t* w)
+void lms_set_w(LMSFilter* self, pfloat* w)
 {
     for (size_t i = 0; i < self->length; i++) self->w[i] = w[i];
 }
@@ -125,9 +110,9 @@ void lms_destory(LMSFilter *self)
     free(self);
 }
 
-lms_t lms_predict(LMSFilter *self, lms_t *xbuf)
+pfloat lms_predict(LMSFilter *self, pfloat *xbuf)
 {
-    lms_t y = 0;
+    pfloat y = 0;
     for (size_t i = 0; i < self->length; i++)
     {
         y += self->w[i] * xbuf[i];
@@ -135,23 +120,23 @@ lms_t lms_predict(LMSFilter *self, lms_t *xbuf)
     return y;
 }
 
-void lms_update(LMSFilter *self, lms_t* xbuf, lms_t e)
+void lms_update(LMSFilter *self, pfloat* xbuf, pfloat e)
 {
-    lms_t pow = 0;
+    pfloat pow = 0;
     for (size_t i = 0; i < self->length; i++) pow += xbuf[i]*xbuf[i];
 
-    lms_t stepsize = self->stepsize / (pow + self->eps);
+    pfloat stepsize = self->stepsize / (pow + self->eps);
     for (size_t i = 0; i < self->length; i++) {
         self->w[i] *= self->leakage;
         self->w[i] += stepsize * e * xbuf[i];
     }
 }
 
-void lms_train(LMSFilter *self, lms_t* xs, lms_t* ys, size_t length)
+void lms_train(LMSFilter *self, pfloat* xs, pfloat* ys, size_t length)
 {
-    AudioBuf* xbuf = audiobuf_new(0, self->length, calloc(self->length, sizeof(lms_t)));
+    AudioBuf* xbuf = audiobuf_new(0, self->length, calloc(self->length, sizeof(pfloat)));
 
-    lms_t y_hat, x, y, e;
+    pfloat y_hat, x, y, e;
     for (size_t i = 0; i < length; i++)
     {
         x = xs[i];

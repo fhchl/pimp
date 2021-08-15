@@ -8,19 +8,37 @@ add_subdirectory(external/libwav)
 add_subdirectory(external/Unity)
 target_compile_definitions(unity PUBLIC -DUNITY_INCLUDE_DOUBLE)
 
+add_library(pocketfft STATIC external/pocketfft/pocketfft.c)
+
 add_executable(${PROJECT_NAME} src/pimp.c src/main.c)
 target_link_libraries(${PROJECT_NAME} wav::wav m)
 
 set(TEST_AUDIOBUF test_AudioBuf)
-add_executable(${TEST_AUDIOBUF} src/pimp.c tests/test_AudioBuf.c)
-target_include_directories(${TEST_AUDIOBUF} PRIVATE src)
-target_include_directories(${TEST_AUDIOBUF} PRIVATE tests)
+add_executable(${TEST_AUDIOBUF} src/pimp.c tests/${TEST_AUDIOBUF}.c)
+target_include_directories(${TEST_AUDIOBUF}
+    PRIVATE src
+    PRIVATE tests)
 target_link_libraries(${TEST_AUDIOBUF} wav::wav m unity)
 add_test(${TEST_AUDIOBUF} ./${TEST_AUDIOBUF} .)
 
 set(TEST_LMSFILTER test_LMSFilter)
-add_executable(${TEST_LMSFILTER} src/pimp.c tests/test_LMSFilter.c)
-target_include_directories(${TEST_LMSFILTER} PRIVATE src)
-target_include_directories(${TEST_LMSFILTER} PRIVATE tests)
+add_executable(${TEST_LMSFILTER} src/pimp.c tests/${TEST_LMSFILTER}.c)
+target_include_directories(${TEST_LMSFILTER}
+    PRIVATE src
+    PRIVATE tests)
 target_link_libraries(${TEST_LMSFILTER} wav::wav m unity)
 add_test(${TEST_LMSFILTER} ./${TEST_LMSFILTER} .)
+
+set(TEST_BLOCKLMSFILTER test_BlockLMSFilter)
+add_executable(${TEST_BLOCKLMSFILTER} src/pimp.c tests/${TEST_BLOCKLMSFILTER}.c)
+target_include_directories(${TEST_BLOCKLMSFILTER} PRIVATE external/pocketfft)
+target_link_libraries(${TEST_BLOCKLMSFILTER} wav::wav m unity pocketfft)
+add_test(${TEST_BLOCKLMSFILTER} ./${TEST_BLOCKLMSFILTER} .)
+
+set(TEST_POCKETFFT test_pocketfft)
+add_executable(${TEST_POCKETFFT} external/pocketfft/ffttest.c)
+target_include_directories(${TEST_POCKETFFT} PRIVATE external/pocketfft)
+target_link_libraries(${TEST_POCKETFFT} pocketfft m)
+add_test(${TEST_POCKETFFT} ./${TEST_POCKETFFT} .)
+
+

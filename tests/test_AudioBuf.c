@@ -13,9 +13,9 @@ void test_AudioBuf_LeftExtend(void)
 {
     uint samplerate = 100;
     size_t length = TEST_AUDIOBUF_LENGTH;
-    AudioBuf* buf = audiobuf_new(samplerate, length, calloc(length, sizeof(lms_t)));
+    AudioBuf* buf = audiobuf_new(samplerate, length, calloc(length, sizeof(pfloat)));
 
-    lms_t expected[TEST_AUDIOBUF_LENGTH] = {0};
+    pfloat expected[TEST_AUDIOBUF_LENGTH] = {0};
     TEST_ASSERT_EQUAL_DOUBLE_ARRAY(expected, buf->data, length);
 
     audiobuf_left_extend(buf, 1);
