@@ -1,19 +1,18 @@
-#include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include "pimp.h"
 #include "unity.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 void setUp(void) {}
 void tearDown(void) {}
 
 #define TEST_AUDIOBUF_LENGTH 100
 
-void test_AudioBuf_LeftExtend(void)
-{
-    uint samplerate = 100;
-    size_t length = TEST_AUDIOBUF_LENGTH;
-    AudioBuf* buf = audiobuf_new(samplerate, length, calloc(length, sizeof(pfloat)));
+void test_AudioBuf_LeftExtend(void) {
+    uint      samplerate = 100;
+    size_t    length     = TEST_AUDIOBUF_LENGTH;
+    AudioBuf* buf        = audiobuf_new(samplerate, length, calloc(length, sizeof(pfloat)));
 
     pfloat expected[TEST_AUDIOBUF_LENGTH] = {0};
     TEST_ASSERT_EQUAL_DOUBLE_ARRAY(expected, buf->data, length);
@@ -50,7 +49,6 @@ void test_AudioBuf_LeftExtend(void)
 
     audiobuf_destroy(buf);
 }
-
 
 // not needed when using generate_test_runner.rb
 int main(void) {

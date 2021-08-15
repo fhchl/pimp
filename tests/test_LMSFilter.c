@@ -1,35 +1,30 @@
-#include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include "pimp.h"
 #include "unity.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 void setUp(void) {}
 void tearDown(void) {}
 
-void TEST_ASSERT_DOUBLE_ARRAY_WITHIN(pfloat delta, pfloat* expected, pfloat* actual, size_t num_elements)
-{
-    for (size_t i = 0; i < num_elements; i++)
-    {
+void TEST_ASSERT_DOUBLE_ARRAY_WITHIN(pfloat delta, pfloat* expected, pfloat* actual, size_t num_elements) {
+    for (size_t i = 0; i < num_elements; i++) {
         TEST_ASSERT_DOUBLE_WITHIN(delta, expected[i], actual[i]);
     }
-
 }
 
-void test_LMSFilter_predict(void)
-{
-    size_t length = 2;
-    pfloat w[] = {0, 0.5};
-    LMSFilter* filt = lms_new(length, 0, 1);
+void test_LMSFilter_predict(void) {
+    size_t     length = 2;
+    pfloat     w[]    = {0, 0.5};
+    LMSFilter* filt   = lms_new(length, 0, 1);
     lms_set_w(filt, w);
 
-    AudioBuf* x = audiobuf_from_wav("../tests/data/x.wav");
-    AudioBuf* y = audiobuf_from_wav("../tests/data/y_1.wav");
+    AudioBuf* x    = audiobuf_from_wav("../tests/data/x.wav");
+    AudioBuf* y    = audiobuf_from_wav("../tests/data/y_1.wav");
     AudioBuf* xbuf = audiobuf_new(0, length, calloc(length, sizeof(pfloat)));
 
     pfloat y_hat;
-    for (size_t i = 0; i < x->length; i++)
-    {
+    for (size_t i = 0; i < x->length; i++) {
         audiobuf_left_extend(xbuf, x->data[i]);
         y_hat = lms_predict(filt, xbuf->data);
         TEST_ASSERT_EQUAL_DOUBLE(y->data[i], y_hat);
@@ -41,24 +36,22 @@ void test_LMSFilter_predict(void)
     lms_destory(filt);
 }
 
-void test_LMSFilter_update_predict(void)
-{
-    size_t length = 2;
-    pfloat w[] = {0, 0.5};
-    LMSFilter* filt = lms_new(length, 0.1, 1);
+void test_LMSFilter_update_predict(void) {
+    size_t     length = 2;
+    pfloat     w[]    = {0, 0.5};
+    LMSFilter* filt   = lms_new(length, 0.1, 1);
 
-    AudioBuf* xs = audiobuf_from_wav("../tests/data/x.wav");
-    AudioBuf* ys = audiobuf_from_wav("../tests/data/y_1.wav");
+    AudioBuf* xs   = audiobuf_from_wav("../tests/data/x.wav");
+    AudioBuf* ys   = audiobuf_from_wav("../tests/data/y_1.wav");
     AudioBuf* xbuf = audiobuf_new(0, length, calloc(length, sizeof(pfloat)));
 
     pfloat y_hat, x, y, e;
-    for (size_t i = 0; i < xs->length; i++)
-    {
+    for (size_t i = 0; i < xs->length; i++) {
         x = xs->data[i];
         y = ys->data[i];
         audiobuf_left_extend(xbuf, x);
         y_hat = lms_predict(filt, xbuf->data);
-        e = y - y_hat;
+        e     = y - y_hat;
         lms_update(filt, xbuf->data, e);
     }
 
@@ -72,11 +65,10 @@ void test_LMSFilter_update_predict(void)
     lms_destory(filt);
 }
 
-void test_LMSFilter_train_0(void)
-{
-    size_t length = 2;
-    pfloat w_0[] = {0.5, 0};
-    LMSFilter* filt = lms_new(length, 0.1, 1);
+void test_LMSFilter_train_0(void) {
+    size_t     length = 2;
+    pfloat     w_0[]  = {0.5, 0};
+    LMSFilter* filt   = lms_new(length, 0.1, 1);
 
     AudioBuf* xs = audiobuf_from_wav("../tests/data/x.wav");
     AudioBuf* ys = audiobuf_from_wav("../tests/data/y_0.wav");
@@ -90,11 +82,10 @@ void test_LMSFilter_train_0(void)
     lms_destory(filt);
 }
 
-void test_LMSFilter_train_1(void)
-{
-    size_t length = 2;
-    pfloat w_1[] = { 0, 0.5 };
-    LMSFilter* filt = lms_new(length, 0.1, 1);
+void test_LMSFilter_train_1(void) {
+    size_t     length = 2;
+    pfloat     w_1[]  = {0, 0.5};
+    LMSFilter* filt   = lms_new(length, 0.1, 1);
 
     AudioBuf* xs = audiobuf_from_wav("../tests/data/x.wav");
     AudioBuf* ys = audiobuf_from_wav("../tests/data/y_1.wav");
