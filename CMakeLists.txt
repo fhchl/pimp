@@ -10,7 +10,7 @@ target_compile_definitions(unity PUBLIC -DUNITY_INCLUDE_DOUBLE)
 
 add_library(pocketfft STATIC external/pocketfft/pocketfft.c)
 
-add_executable(${PROJECT_NAME} src/pimp.c src/main.c)
+add_library(${PROJECT_NAME} src/pimp.c)
 target_link_libraries(${PROJECT_NAME} wav::wav m)
 
 set(TEST_AUDIOBUF test_AudioBuf)
