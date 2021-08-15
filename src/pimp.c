@@ -100,6 +100,7 @@ typedef struct
     lms_t stepsize;
     lms_t leakage;
     lms_t *w;
+    lms_t eps;
 } LMSFilter;
 
 LMSFilter *lms_new(size_t length, lms_t stepsize, lms_t leakage)
@@ -108,10 +109,12 @@ LMSFilter *lms_new(size_t length, lms_t stepsize, lms_t leakage)
     lms->w = calloc(length, sizeof(lms_t));
     lms->length = length;
     lms->stepsize = stepsize;
+    lms->eps = 1e-8;
+    lms->leakage = 1;
     return lms;
 }
 
-void *lms_set_w(LMSFilter* self, lms_t* w)
+void lms_set_w(LMSFilter* self, lms_t* w)
 {
     for (size_t i = 0; i < self->length; i++) self->w[i] = w[i];
 }
@@ -122,12 +125,24 @@ void lms_destory(LMSFilter *self)
     free(self);
 }
 
-lms_t lms_predict(LMSFilter *self, lms_t *x)
+lms_t lms_predict(LMSFilter *self, lms_t *xbuf)
 {
     lms_t y = 0;
     for (size_t i = 0; i < self->length; i++)
     {
-        y += self->w[i] * x[i];
+        y += self->w[i] * xbuf[i];
     }
     return y;
+}
+
+void lms_update(LMSFilter *self, lms_t* xbuf, lms_t e)
+{
+    lms_t pow = 0;
+    for (size_t i = 0; i < self->length; i++) pow += xbuf[i]*xbuf[i];
+
+    lms_t stepsize = self->stepsize / (pow + self->eps);
+    for (size_t i = 0; i < self->length; i++) {
+        self->w[i] *= self->leakage;
+        self->w[i] += stepsize * e * xbuf[i];
+    }
 }

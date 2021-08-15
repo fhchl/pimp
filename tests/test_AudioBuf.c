@@ -7,22 +7,15 @@
 void setUp(void) {}
 void tearDown(void) {}
 
-void TEST_ASSERT_DOUBLE_ARRAY_WITHIN(lms_t delta, lms_t* expected, lms_t* actual, size_t num_elements)
-{
-    for (size_t i = 0; i < num_elements; i++)
-    {
-        TEST_ASSERT_DOUBLE_WITHIN(delta, expected[i], actual[i]);
-    }
-
-}
+#define TEST_AUDIOBUF_LENGTH 100
 
 void test_AudioBuf_LeftExtend(void)
 {
     uint samplerate = 100;
-    size_t length = 5;
+    size_t length = TEST_AUDIOBUF_LENGTH;
     AudioBuf* buf = audiobuf_new(samplerate, length, calloc(length, sizeof(lms_t)));
 
-    lms_t expected[] = {0., 0., 0., 0., 0.};
+    lms_t expected[TEST_AUDIOBUF_LENGTH] = {0};
     TEST_ASSERT_EQUAL_DOUBLE_ARRAY(expected, buf->data, length);
 
     audiobuf_left_extend(buf, 1);
@@ -58,36 +51,10 @@ void test_AudioBuf_LeftExtend(void)
     audiobuf_destroy(buf);
 }
 
-void test_LMSFilter_predict(void)
-{
-    uint samplerate = 100;
-    size_t length = 2;
-    lms_t w[] = {0, 0.5};
-    LMSFilter* filt = lms_new(length, 0, 1);
-    lms_set_w(filt, w);
-
-    lms_t* data = calloc(length, sizeof(data));
-    AudioBuf* x = audiobuf_from_wav("../tests/data/x.wav");
-    AudioBuf* y = audiobuf_from_wav("../tests/data/y_1.wav");
-    AudioBuf* xbuf = audiobuf_new(samplerate, length, calloc(length, sizeof(lms_t)));
-
-    lms_t y_hat;
-    for (size_t i = 0; i < x->length; i++)
-    {
-        audiobuf_left_extend(xbuf, x->data[i]);
-        y_hat = lms_predict(filt, xbuf->data);
-        TEST_ASSERT_EQUAL_DOUBLE(y->data[i], y_hat);
-    }
-
-    audiobuf_destroy(x);
-    audiobuf_destroy(y);
-    audiobuf_destroy(xbuf);
-}
 
 // not needed when using generate_test_runner.rb
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_AudioBuf_LeftExtend);
-    RUN_TEST(test_LMSFilter_predict);
     return UNITY_END();
 }
