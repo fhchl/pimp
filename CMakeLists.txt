@@ -5,7 +5,6 @@ enable_testing()
 
 add_subdirectory(external/libwav)
 
-
 include_directories(tests) # to include unity_config.h
 add_definitions(-DUNITY_INCLUDE_CONFIG_H)
 add_subdirectory(external/Unity)
@@ -18,4 +17,4 @@ add_executable(${TEST1} src/pimp.c tests/test_audiobuf.c)
 target_include_directories(${TEST1} PRIVATE src)
 target_include_directories(${TEST1} PRIVATE tests)
 target_link_libraries(${TEST1} wav::wav m unity)
-
+add_test(${TEST1} ./${TEST1} .)

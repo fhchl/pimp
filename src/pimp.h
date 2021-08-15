@@ -25,3 +25,4 @@ typedef struct
 LMSFilter *lms_new(size_t length, lms_t stepsize, lms_t leakage);
 void lms_destory(LMSFilter *self);
 lms_t lms_predict(LMSFilter *self, lms_t *x);
+void *lms_set_w(LMSFilter* self, lms_t* w);

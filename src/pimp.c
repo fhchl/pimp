@@ -111,6 +111,11 @@ LMSFilter *lms_new(size_t length, lms_t stepsize, lms_t leakage)
     return lms;
 }
 
+void *lms_set_w(LMSFilter* self, lms_t* w)
+{
+    for (size_t i = 0; i < self->length; i++) self->w[i] = w[i];
+}
+
 void lms_destory(LMSFilter *self)
 {
     free(self->w);
