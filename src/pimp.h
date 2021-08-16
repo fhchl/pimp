@@ -50,4 +50,7 @@ void            blms_update(BlockLMSFilter* self, pcomplex* Xbuf, pfloat e);
 void            blms_train(BlockLMSFilter* self, pfloat* xs, pfloat* ys, size_t length);
 pfloat          blms_predict(BlockLMSFilter* self, pcomplex* Xbuf);
 
+
+AudioBuf* create_sweep(pfloat duration, uint sr, pfloat amp, pfloat postsilence);
+
 #endif /* __PIMP_H__ */

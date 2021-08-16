@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <tgmath.h>
+#include <assert.h>
 
 #include "pimp.h"
 #include "wav.h"
@@ -73,6 +74,7 @@ void audiobuf_left_extend(AudioBuf* buf, pfloat x) {
     buf->data[0] = x;
 }
 
+
 LMSFilter* lms_new(size_t length, pfloat stepsize, pfloat leakage) {
     LMSFilter* lms = malloc(sizeof(LMSFilter));
     lms->w         = calloc(length, sizeof(pfloat));
@@ -128,4 +130,27 @@ void lms_train(LMSFilter* self, pfloat* xs, pfloat* ys, size_t length) {
     }
 
     audiobuf_destroy(xbuf);
+}
+
+
+AudioBuf* create_sweep(pfloat duration, uint sr, pfloat amp, pfloat postsilence)
+{
+    size_t length = (size_t)round(duration * sr);
+    assert(length > 2);
+    size_t length_silence = (size_t)round(postsilence *sr);
+
+    double omega_start = 2 * M_PI * sr / length;
+    double omega_end = 2 * M_PI * sr / 2;
+
+    pfloat* sweep = calloc(length + length_silence, sizeof(pfloat));
+    pfloat phase, logdiv, t;
+    for (size_t i = 0; i < length; i++)
+    {
+        t = i * duration / length;
+        logdiv = log(omega_end / omega_start);
+        phase = omega_start * duration / logdiv * (exp(t / duration * logdiv) - 1);
+        sweep[i] = sin(phase) * amp;
+    }
+
+    return audiobuf_new(sr, length + length_silence, sweep);
 }

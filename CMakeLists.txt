@@ -21,6 +21,14 @@ target_include_directories(${TEST_AUDIOBUF}
 target_link_libraries(${TEST_AUDIOBUF} wav::wav m unity)
 add_test(${TEST_AUDIOBUF} ./${TEST_AUDIOBUF} .)
 
+set(TEST_TFEST test_TFest)
+add_executable(${TEST_TFEST} src/pimp.c tests/${TEST_TFEST}.c)
+target_include_directories(${TEST_TFEST}
+    PRIVATE src
+    PRIVATE tests)
+target_link_libraries(${TEST_TFEST} wav::wav m unity)
+add_test(${TEST_TFEST} ./${TEST_TFEST} .)
+
 set(TEST_LMSFILTER test_LMSFilter)
 add_executable(${TEST_LMSFILTER} src/pimp.c tests/${TEST_LMSFILTER}.c)
 target_include_directories(${TEST_LMSFILTER}
@@ -35,10 +43,10 @@ target_include_directories(${TEST_BLOCKLMSFILTER} PRIVATE external/pocketfft)
 target_link_libraries(${TEST_BLOCKLMSFILTER} wav::wav m unity pocketfft)
 add_test(${TEST_BLOCKLMSFILTER} ./${TEST_BLOCKLMSFILTER} .)
 
-set(TEST_POCKETFFT test_pocketfft)
-add_executable(${TEST_POCKETFFT} external/pocketfft/ffttest.c)
-target_include_directories(${TEST_POCKETFFT} PRIVATE external/pocketfft)
-target_link_libraries(${TEST_POCKETFFT} pocketfft m)
-add_test(${TEST_POCKETFFT} ./${TEST_POCKETFFT} .)
+# set(TEST_POCKETFFT test_pocketfft)
+# add_executable(${TEST_POCKETFFT} external/pocketfft/ffttest.c)
+# target_include_directories(${TEST_POCKETFFT} PRIVATE external/pocketfft)
+# target_link_libraries(${TEST_POCKETFFT} pocketfft m)
+# add_test(${TEST_POCKETFFT} ./${TEST_POCKETFFT} .)
 
 

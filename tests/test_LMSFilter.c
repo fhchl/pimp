@@ -3,15 +3,10 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <tests.h>
 
 void setUp(void) {}
 void tearDown(void) {}
-
-void TEST_ASSERT_DOUBLE_ARRAY_WITHIN(pfloat delta, pfloat* expected, pfloat* actual, size_t num_elements) {
-    for (size_t i = 0; i < num_elements; i++) {
-        TEST_ASSERT_DOUBLE_WITHIN(delta, expected[i], actual[i]);
-    }
-}
 
 void test_LMSFilter_predict(void) {
     size_t     length = 2;
