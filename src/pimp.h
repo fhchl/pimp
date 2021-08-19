@@ -36,20 +36,22 @@ void       lms_train(LMSFilter* self, pfloat* xs, pfloat* ys, size_t length);
 pfloat     lms_predict(LMSFilter* self, pfloat* xbuf);
 
 typedef struct {
-    size_t    length;
-    pfloat    stepsize;
-    pfloat    leakage;
-    pfloat    eps;
-    pcomplex* W;
-} BlockLMSFilter;
+    size_t   length;
+    pfloat   alpha; // memory-fading coefficient
+    pfloat   r;     // measurement noise
+    pfloat   q;     // process noise
+    pfloat*  k;     // Kalman gain
+    pfloat*  Px;    // temp
+    pfloat*  w;     // Filter estimate
+    pfloat** P;     // Filter covariance estimate
+} RLSFilter;
 
-BlockLMSFilter* blms_new(size_t length, pfloat stepsize, pfloat leakage);
-void            blms_destory(BlockLMSFilter* self);
-void            blms_set_w(BlockLMSFilter* self, pfloat* w);
-void            blms_update(BlockLMSFilter* self, pcomplex* Xbuf, pfloat e);
-void            blms_train(BlockLMSFilter* self, pfloat* xs, pfloat* ys, size_t length);
-pfloat          blms_predict(BlockLMSFilter* self, pcomplex* Xbuf);
-
+RLSFilter* rls_new(size_t length, pfloat alpha, pfloat Pinit);
+void       rls_destory(RLSFilter* self);
+void       rls_set_w(RLSFilter* self, pfloat* w);
+void       rls_update(RLSFilter* self, pfloat* xbuf, pfloat e);
+void       rls_train(RLSFilter* self, pfloat* xs, pfloat* ys, size_t length);
+pfloat     rls_predict(RLSFilter* self, pfloat* xbuf);
 
 AudioBuf* create_sweep(pfloat duration, uint sr, pfloat amp, pfloat postsilence);
 

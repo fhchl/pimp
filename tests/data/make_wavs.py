@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as pl
 import soundfile as sf
 import adafilt
+import measuretf.signals
 # %%
 np.random.seed(123)
 
@@ -24,11 +25,12 @@ for i, w in enumerate(ws):
 sf.write('x.wav', x, samplerate, subtype='FLOAT');
 
 # %%
-import soundfile as sf
-import measuretf.signals
 sr = 1000
 sweep = measuretf.signals.exponential_sweep(
     1, sr, tfade=0, f_start=None, f_end=None, maxamp=0.5, post_silence=0.5
 )
 sf.write("sweep.wav", sweep, sr, subtype="FLOAT")
 # %%
+w = [0, 0.5, -0.5]
+y = adafilt.olafilt(w, sweep)
+sf.write("sweep_w.wav", y, sr, subtype="FLOAT")

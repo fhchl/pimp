@@ -37,6 +37,14 @@ target_include_directories(${TEST_LMSFILTER}
 target_link_libraries(${TEST_LMSFILTER} wav::wav m unity)
 add_test(${TEST_LMSFILTER} ./${TEST_LMSFILTER} .)
 
+set(TEST_RLSFILTER test_RLSFilter)
+add_executable(${TEST_RLSFILTER} src/pimp.c tests/${TEST_RLSFILTER}.c)
+target_include_directories(${TEST_RLSFILTER}
+    PRIVATE src
+    PRIVATE tests)
+target_link_libraries(${TEST_RLSFILTER} wav::wav m unity)
+add_test(${TEST_RLSFILTER} ./${TEST_RLSFILTER} .)
+
 set(TEST_BLOCKLMSFILTER test_BlockLMSFilter)
 add_executable(${TEST_BLOCKLMSFILTER} src/pimp.c tests/${TEST_BLOCKLMSFILTER}.c)
 target_include_directories(${TEST_BLOCKLMSFILTER} PRIVATE external/pocketfft)
