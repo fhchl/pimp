@@ -14,9 +14,9 @@ void test_create_sweep(void) {
     AudioBuf* expected = audiobuf_from_wav("../tests/data/sweep.wav");
     AudioBuf* actual   = create_sweep(1, 1000, 0.5, 0.5);
 
-    assert(expected->length == actual->length);
+    assert(expected->len == actual->len);
 
-    TEST_ASSERT_DOUBLE_ARRAY_WITHIN(1e-7, expected->data, actual->data, expected->length);
+    TEST_ASSERT_DOUBLE_ARRAY_WITHIN(1e-7, expected->data, actual->data, expected->len);
 
     audiobuf_destroy(expected);
     audiobuf_destroy(actual);
@@ -25,13 +25,13 @@ void test_create_sweep(void) {
 void test_estimate_tf(void) {
     AudioBuf* in  = audiobuf_from_wav("../tests/data/sweep.wav");
     AudioBuf* out = audiobuf_from_wav("../tests/data/sweep_w.wav");
-    assert(in->length == out->length);
+    assert(in->len == out->len);
 
     size_t length     = 5;
     pfloat expected[] = {0, 0.5, -0.5, 0, 0};
 
-    RLSFilter* filt = rls_new(length, 1, 10);
-    rls_train(filt, in->data, out->data, in->length);
+    RLSFilter* filt = rls_init(length, 1, 10);
+    rls_train(filt, in->len, in->data, out->data);
 
     TEST_ASSERT_DOUBLE_ARRAY_WITHIN(1e-7, expected, filt->w, length);
 
