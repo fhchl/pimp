@@ -1,8 +1,7 @@
-#include "pimp.h"
-#include "unity.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+
 #include <tests.h>
 
 void setUp(void) {}
@@ -50,9 +49,9 @@ void test_RLSFilter_update_predict(void) {
         rls_update(filt, xbuf->data, e);
     }
 
-    TEST_ASSERT_DOUBLE_ARRAY_WITHIN(1e-8, w, filt->w, len);
-    TEST_ASSERT_DOUBLE_WITHIN(1e-8, y, y_hat);
-    TEST_ASSERT_DOUBLE_WITHIN(1e-8, 0, e);
+    TEST_ASSERT_ARRAY_WITHIN(1e-8, w, filt->w, len);
+    TEST_ASSERT_WITHIN(1e-8, y, y_hat);
+    TEST_ASSERT_WITHIN(1e-8, 0, e);
 
     audiobuf_destroy(xs);
     audiobuf_destroy(ys);
@@ -70,7 +69,7 @@ void test_RLSFilter_train_0(void) {
 
     rls_train(filt, xs->len, xs->data, ys->data);
 
-    TEST_ASSERT_DOUBLE_ARRAY_WITHIN(1e-8, w_0, filt->w, len);
+    TEST_ASSERT_ARRAY_WITHIN(1e-8, w_0, filt->w, len);
 
     audiobuf_destroy(xs);
     audiobuf_destroy(ys);
@@ -87,7 +86,7 @@ void test_RLSFilter_train_1(void) {
 
     rls_train(filt, xs->len, xs->data, ys->data);
 
-    TEST_ASSERT_DOUBLE_ARRAY_WITHIN(1e-8, w_1, filt->w, len);
+    TEST_ASSERT_ARRAY_WITHIN(1e-8, w_1, filt->w, len);
 
     audiobuf_destroy(xs);
     audiobuf_destroy(ys);

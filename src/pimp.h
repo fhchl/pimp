@@ -1,25 +1,13 @@
 #ifndef __PIMP_H__
 #define __PIMP_H__
 
-#include "wav.h"
-#include <complex.h>
-#include <stdio.h>
 #include <stdlib.h>
+#include <complex.h>
 
-typedef float complex pcomplex;
-typedef float         pfloat;
+#define DTYPE double
 
-typedef struct {
-    uint    samplerate;
-    size_t  len;
-    pfloat* data;
-} AudioBuf;
-
-AudioBuf* audiobuf_new(uint samplerate, size_t len, pfloat data[len]);
-AudioBuf* audiobuf_from_wav(char* path);
-void      audiobuf_destroy(AudioBuf* buf);
-void      audiobuf_left_extend(AudioBuf* buf, pfloat x);
-AudioBuf* create_sweep(pfloat duration, uint sr, pfloat amp, pfloat postsilence);
+typedef DTYPE complex pcomplex;
+typedef DTYPE         pfloat;
 
 typedef struct {
     size_t  len;

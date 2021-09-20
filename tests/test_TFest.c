@@ -16,7 +16,7 @@ void test_create_sweep(void) {
 
     assert(expected->len == actual->len);
 
-    TEST_ASSERT_DOUBLE_ARRAY_WITHIN(1e-7, expected->data, actual->data, expected->len);
+    TEST_ASSERT_ARRAY_WITHIN(1e-4, expected->data, actual->data, expected->len);
 
     audiobuf_destroy(expected);
     audiobuf_destroy(actual);
@@ -33,7 +33,7 @@ void test_estimate_tf(void) {
     RLSFilter* filt = rls_init(length, 1, 10);
     rls_train(filt, in->len, in->data, out->data);
 
-    TEST_ASSERT_DOUBLE_ARRAY_WITHIN(1e-7, expected, filt->w, length);
+    TEST_ASSERT_ARRAY_WITHIN(1e-5, expected, filt->w, length);
 
     audiobuf_destroy(in);
     audiobuf_destroy(out);

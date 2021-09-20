@@ -1,74 +1,26 @@
 #include <assert.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <tgmath.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "pimp.h"
-#include "wav.h"
 
-void check_error() {
-    WAV_CONST WavErr* err = wav_err();
-    if (err->code > 0) {
-        printf("error: %s\n", err->message);
-        exit(EXIT_FAILURE);
-    } else
-        wav_err_clear();
-}
+#define CHECK_ALLOC(errcode) assert(errcode)
 
-AudioBuf* audiobuf_new(uint samplerate, size_t len, pfloat data[len]) {
-    AudioBuf* buf   = malloc(sizeof *buf);
-    buf->data       = data;
-    buf->samplerate = samplerate;
-    buf->len        = len;
-    return buf;
-}
-
-AudioBuf* audiobuf_from_wav(char* path) {
-    WavFile* fp = wav_open(path, WAV_OPEN_READ);
-    check_error();
-
-    if (wav_get_format(fp) != WAV_FORMAT_IEEE_FLOAT) {
-        printf("error: wrong format %d", wav_get_format(fp));
-        exit(EXIT_FAILURE);
-    }
-
-    size_t len        = wav_get_length(fp);
-    uint   samplerate = wav_get_sample_rate(fp);
-    float* data_float = malloc(len * sizeof *data_float);
-    size_t count      = wav_read(fp, data_float, len);
-    if (count != len)
-        check_error();
-
-    pfloat* data = malloc(len * sizeof *data);
-    for (int i = 0; i < len; i++)
-        data[i] = (pfloat)data_float[i];
-
-    wav_close(fp);
-    free(data_float);
-
-    return audiobuf_new(samplerate, len, data);
-}
-
-void audiobuf_destroy(AudioBuf* buf) {
-    if (buf) {
-        free(buf->data);
-        free(buf);
-    }
-}
-
-void audiobuf_left_extend(AudioBuf* buf, pfloat x) {
-    memmove(&buf->data[1], &buf->data[0], (buf->len - 1) * sizeof *(buf->data));
-    buf->data[0] = x;
+void left_extend(size_t len, pfloat buf[len], pfloat x) {
+    memmove(&buf[1], &buf[0], (len - 1) * sizeof *buf);
+    buf[0] = x;
 }
 
 LMSFilter* lms_init(size_t len, pfloat stepsize, pfloat leakage) {
-    LMSFilter* lms = malloc(sizeof *lms);
-    lms->w         = calloc(len, sizeof *(lms->w));
-    lms->len       = len;
-    lms->stepsize  = stepsize;
-    lms->eps       = 1e-8;
-    lms->leakage   = 1;
+    LMSFilter* lms;
+    CHECK_ALLOC(lms = malloc(sizeof *lms));
+    CHECK_ALLOC(lms->w = calloc(len, sizeof *(lms->w)));
+    lms->len      = len;
+    lms->stepsize = stepsize;
+    lms->eps      = 1e-8;
+    lms->leakage  = 1;
     return lms;
 }
 
@@ -104,33 +56,34 @@ void lms_update(LMSFilter* self, pfloat x[self->len], pfloat e) {
 }
 
 void lms_train(LMSFilter* self, size_t len, pfloat xs[len], pfloat ys[len]) {
-    AudioBuf* xbuf = audiobuf_new(0, self->len,
-                                  calloc(self->len, sizeof(pfloat)));
+    pfloat* xbuf;
+    CHECK_ALLOC(xbuf = calloc(self->len, sizeof *xbuf));
 
     pfloat y_hat, x, y, e;
     for (size_t i = 0; i < len; i++) {
         x = xs[i];
         y = ys[i];
-        audiobuf_left_extend(xbuf, x);
-        y_hat = lms_predict(self, xbuf->data);
+        left_extend(self->len, xbuf, x);
+        y_hat = lms_predict(self, xbuf);
         e     = y - y_hat;
-        lms_update(self, xbuf->data, e);
+        lms_update(self, xbuf, e);
     }
 
-    audiobuf_destroy(xbuf);
+    free(xbuf);
 }
 
 RLSFilter* rls_init(size_t len, pfloat alpha, pfloat Pinit) {
     assert(alpha >= 1.0);
     assert(Pinit >= 0.);
 
-    RLSFilter* rls = malloc(sizeof *rls);
-    rls->w         = calloc(len, sizeof *(rls->w));
-    rls->Px        = malloc(len * sizeof *(rls->Px));
-    rls->k         = malloc(len * sizeof *(rls->k));
-    rls->P         = malloc(len * sizeof *(rls->P));
+    RLSFilter* rls;
+    CHECK_ALLOC(rls = malloc(sizeof *rls));
+    CHECK_ALLOC(rls->w         = calloc(len, sizeof *(rls->w)));
+    CHECK_ALLOC(rls->Px        = malloc(len * sizeof *(rls->Px)));
+    CHECK_ALLOC(rls->k         = malloc(len * sizeof *(rls->k)));
+    CHECK_ALLOC(rls->P         = malloc(len * sizeof *(rls->P)));
     for (size_t i = 0; i < len; i++)
-        rls->P[i] = calloc(len, sizeof **(rls->P));
+        CHECK_ALLOC(rls->P[i] = calloc(len, sizeof **(rls->P)));
 
     rls->len   = len;
     rls->alpha = alpha;
@@ -203,38 +156,18 @@ pfloat rls_predict(RLSFilter* self, pfloat x[self->len]) {
 }
 
 void rls_train(RLSFilter* self, size_t len, pfloat xs[len], pfloat ys[len]) {
-    AudioBuf* xbuf = audiobuf_new(0, self->len,
-                                  calloc(self->len, sizeof(pfloat)));
+    pfloat* xbuf;
+    CHECK_ALLOC(xbuf = calloc(self->len, sizeof *xbuf));
 
     pfloat y_hat, x, y, e;
     for (size_t i = 0; i < len; i++) {
         x = xs[i];
         y = ys[i];
-        audiobuf_left_extend(xbuf, x);
-        y_hat = rls_predict(self, xbuf->data);
+        left_extend(self->len, xbuf, x);
+        y_hat = rls_predict(self, xbuf);
         e     = y - y_hat;
-        rls_update(self, xbuf->data, e);
+        rls_update(self, xbuf, e);
     }
 
-    audiobuf_destroy(xbuf);
-}
-
-AudioBuf* create_sweep(pfloat duration, uint sr, pfloat amp, pfloat postsilence) {
-    size_t len = (size_t)round(duration * sr);
-    assert(len > 2);
-    size_t len_silence = (size_t)round(postsilence * sr);
-
-    double omega_start = 2 * M_PI * sr / len;
-    double omega_end   = 2 * M_PI * sr / 2;
-
-    pfloat* sweep = calloc(len + len_silence, sizeof *sweep);
-    pfloat  phase, logdiv, t;
-    for (size_t i = 0; i < len; i++) {
-        t        = i * duration / len;
-        logdiv   = log(omega_end / omega_start);
-        phase    = omega_start * duration / logdiv * (exp(t / duration * logdiv) - 1);
-        sweep[i] = sin(phase) * amp;
-    }
-
-    return audiobuf_new(sr, len + len_silence, sweep);
+    free(xbuf);
 }
