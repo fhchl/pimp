@@ -45,12 +45,6 @@ target_include_directories(${TEST_RLSFILTER}
 target_link_libraries(${TEST_RLSFILTER} wav::wav m unity)
 add_test(${TEST_RLSFILTER} ./${TEST_RLSFILTER} .)
 
-set(TEST_BLOCKLMSFILTER test_BlockLMSFilter)
-add_executable(${TEST_BLOCKLMSFILTER} src/pimp.c tests/${TEST_BLOCKLMSFILTER}.c)
-target_include_directories(${TEST_BLOCKLMSFILTER} PRIVATE external/pocketfft)
-target_link_libraries(${TEST_BLOCKLMSFILTER} wav::wav m unity pocketfft)
-add_test(${TEST_BLOCKLMSFILTER} ./${TEST_BLOCKLMSFILTER} .)
-
 # set(TEST_POCKETFFT test_pocketfft)
 # add_executable(${TEST_POCKETFFT} external/pocketfft/ffttest.c)
 # target_include_directories(${TEST_POCKETFFT} PRIVATE external/pocketfft)

@@ -14,9 +14,10 @@ void left_extend(size_t len, pfloat buf[len], pfloat x) {
 }
 
 LMSFilter* lms_init(size_t len, pfloat stepsize, pfloat leakage) {
-    LMSFilter* lms;
-    CHECK_ALLOC(lms = malloc(sizeof *lms));
-    CHECK_ALLOC(lms->w = calloc(len, sizeof *(lms->w)));
+    LMSFilter* lms = malloc(sizeof *lms);
+    CHECK_ALLOC(lms);
+    lms->w = calloc(len, sizeof *(lms->w));
+    CHECK_ALLOC(lms->w);
     lms->len      = len;
     lms->stepsize = stepsize;
     lms->eps      = 1e-8;
@@ -56,8 +57,8 @@ void lms_update(LMSFilter* self, pfloat x[self->len], pfloat e) {
 }
 
 void lms_train(LMSFilter* self, size_t len, pfloat xs[len], pfloat ys[len]) {
-    pfloat* xbuf;
-    CHECK_ALLOC(xbuf = calloc(self->len, sizeof *xbuf));
+    pfloat *xbuf = calloc(self->len, sizeof *xbuf);
+    CHECK_ALLOC(xbuf);
 
     pfloat y_hat, x, y, e;
     for (size_t i = 0; i < len; i++) {
@@ -77,13 +78,20 @@ RLSFilter* rls_init(size_t len, pfloat alpha, pfloat Pinit) {
     assert(Pinit >= 0.);
 
     RLSFilter* rls;
-    CHECK_ALLOC(rls = malloc(sizeof *rls));
-    CHECK_ALLOC(rls->w         = calloc(len, sizeof *(rls->w)));
-    CHECK_ALLOC(rls->Px        = malloc(len * sizeof *(rls->Px)));
-    CHECK_ALLOC(rls->k         = malloc(len * sizeof *(rls->k)));
-    CHECK_ALLOC(rls->P         = malloc(len * sizeof *(rls->P)));
-    for (size_t i = 0; i < len; i++)
-        CHECK_ALLOC(rls->P[i] = calloc(len, sizeof **(rls->P)));
+    rls = malloc(sizeof *rls);
+    CHECK_ALLOC(rls);
+    rls->w         = calloc(len, sizeof *(rls->w));
+    CHECK_ALLOC(rls->w);
+    rls->Px        = malloc(len * sizeof *(rls->Px));
+    CHECK_ALLOC(rls->Px);
+    rls->k         = malloc(len * sizeof *(rls->k));
+    CHECK_ALLOC(rls->k);
+    rls->P         = malloc(len * sizeof *(rls->P));
+    CHECK_ALLOC(rls->P);
+    for (size_t i = 0; i < len; i++) {
+        rls->P[i] = calloc(len, sizeof **(rls->P));
+        CHECK_ALLOC(rls->P[i]);
+    }
 
     rls->len   = len;
     rls->alpha = alpha;
@@ -156,8 +164,8 @@ pfloat rls_predict(RLSFilter* self, pfloat x[self->len]) {
 }
 
 void rls_train(RLSFilter* self, size_t len, pfloat xs[len], pfloat ys[len]) {
-    pfloat* xbuf;
-    CHECK_ALLOC(xbuf = calloc(self->len, sizeof *xbuf));
+    pfloat *xbuf = calloc(self->len, sizeof *xbuf);
+    CHECK_ALLOC(xbuf);
 
     pfloat y_hat, x, y, e;
     for (size_t i = 0; i < len; i++) {

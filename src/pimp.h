@@ -4,10 +4,7 @@
 #include <stdlib.h>
 #include <complex.h>
 
-#define DTYPE double
-
-typedef DTYPE complex pcomplex;
-typedef DTYPE         pfloat;
+typedef float pfloat;
 
 typedef struct {
     size_t  len;
@@ -41,5 +38,7 @@ void       rls_set_w(RLSFilter* self, pfloat w[self->len]);
 void       rls_update(RLSFilter* self, pfloat x[self->len], pfloat e);
 void       rls_train(RLSFilter* self, size_t len, pfloat xs[len], pfloat ys[len]);
 pfloat     rls_predict(RLSFilter* self, pfloat x[self->len]);
+
+void left_extend(size_t len, pfloat buf[len], pfloat x);
 
 #endif /* __PIMP_H__ */
