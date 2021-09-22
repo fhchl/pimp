@@ -1,10 +1,11 @@
 #include <assert.h>
-#include <stdlib.h>
-#include <tgmath.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <tgmath.h>
 
 #include "pimp.h"
+#include "fft.h"
 
 #define CHECK_ALLOC(errcode) assert(errcode)
 
@@ -57,7 +58,7 @@ void lms_update(LMSFilter* self, pfloat x[self->len], pfloat e) {
 }
 
 void lms_train(LMSFilter* self, size_t len, pfloat xs[len], pfloat ys[len]) {
-    pfloat *xbuf = calloc(self->len, sizeof *xbuf);
+    pfloat* xbuf = calloc(self->len, sizeof *xbuf);
     CHECK_ALLOC(xbuf);
 
     pfloat y_hat, x, y, e;
@@ -80,13 +81,13 @@ RLSFilter* rls_init(size_t len, pfloat alpha, pfloat Pinit) {
     RLSFilter* rls;
     rls = malloc(sizeof *rls);
     CHECK_ALLOC(rls);
-    rls->w         = calloc(len, sizeof *(rls->w));
+    rls->w = calloc(len, sizeof *(rls->w));
     CHECK_ALLOC(rls->w);
-    rls->Px        = malloc(len * sizeof *(rls->Px));
+    rls->Px = malloc(len * sizeof *(rls->Px));
     CHECK_ALLOC(rls->Px);
-    rls->k         = malloc(len * sizeof *(rls->k));
+    rls->k = malloc(len * sizeof *(rls->k));
     CHECK_ALLOC(rls->k);
-    rls->P         = malloc(len * sizeof *(rls->P));
+    rls->P = malloc(len * sizeof *(rls->P));
     CHECK_ALLOC(rls->P);
     for (size_t i = 0; i < len; i++) {
         rls->P[i] = calloc(len, sizeof **(rls->P));
@@ -164,7 +165,7 @@ pfloat rls_predict(RLSFilter* self, pfloat x[self->len]) {
 }
 
 void rls_train(RLSFilter* self, size_t len, pfloat xs[len], pfloat ys[len]) {
-    pfloat *xbuf = calloc(self->len, sizeof *xbuf);
+    pfloat* xbuf = calloc(self->len, sizeof *xbuf);
     CHECK_ALLOC(xbuf);
 
     pfloat y_hat, x, y, e;
@@ -179,3 +180,41 @@ void rls_train(RLSFilter* self, size_t len, pfloat xs[len], pfloat ys[len]) {
 
     free(xbuf);
 }
+
+BlockLMSFilter* blms_init(size_t len, size_t blocklen, pfloat stepsize, pfloat leakage) {
+    assert((0 < leakage) && (leakage <= 1));
+    assert(0 < stepsize);
+
+    BlockLMSFilter* blms = malloc(sizeof *blms);
+    CHECK_ALLOC(blms);
+    blms->W = calloc(2 * len, sizeof *(blms->W));
+    CHECK_ALLOC(blms->W);
+    blms->plan = make_rfft_plan(2 * len);
+    CHECK_ALLOC(blms->plan);
+
+    blms->len      = len;
+    blms->blocklen = blocklen;
+    blms->stepsize = stepsize;
+    blms->eps      = 1e-8;
+    blms->leakage  = 1;
+
+    return blms;
+}
+
+void blms_destory(BlockLMSFilter* self) {
+    if (self) {
+        destroy_rfft_plan(self->plan);
+        free(self->W);
+        free(self);
+    }
+}
+
+void blms_set_w(BlockLMSFilter* self, pfloat w[self->len]) {
+    pfloat* wcopy = calloc(2 * self->len, sizeof *wcopy);
+    memcpy(wcopy, w, self->len);
+    rfft(self->plan, 2*self->len, wcopy, self->W);
+}
+
+void   blms_update(BlockLMSFilter* self, pfloat x[self->len], pfloat e);
+void   blms_train(BlockLMSFilter* self, size_t len, pfloat xs[len], pfloat ys[len]);
+pfloat blms_predict(BlockLMSFilter* self, pfloat x[self->len]);

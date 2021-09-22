@@ -1,11 +1,12 @@
-#include "pimp.h"
-#include "tests.h"
-#include "unity.h"
-
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "pimp.h"
+#include "tests.h"
+#include "unity.h"
+#include "audiobuf.h"
 
 void setUp(void) {}
 void tearDown(void) {}
@@ -16,7 +17,7 @@ void test_create_sweep(void) {
 
     assert(expected->len == actual->len);
 
-    TEST_ASSERT_ARRAY_WITHIN(1e-4, expected->data, actual->data, expected->len);
+    TEST_ARRAY_WITHIN(1e-4, expected->data, actual->data, expected->len);
 
     audiobuf_destroy(expected);
     audiobuf_destroy(actual);
@@ -33,7 +34,7 @@ void test_estimate_tf(void) {
     RLSFilter* filt = rls_init(length, 1, 10);
     rls_train(filt, in->len, in->data, out->data);
 
-    TEST_ASSERT_ARRAY_WITHIN(1e-5, expected, filt->w, length);
+    TEST_ARRAY_WITHIN(1e-5, expected, filt->w, length);
 
     audiobuf_destroy(in);
     audiobuf_destroy(out);

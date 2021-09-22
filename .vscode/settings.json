@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "algorithm": "c"
+        "algorithm": "c",
+        "tests.h": "c",
+        "fft.h": "c"
     }
 }

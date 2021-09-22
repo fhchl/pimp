@@ -1,6 +1,8 @@
-#include "wav.h"
 #include <string.h>
 #include <assert.h>
+
+#include "pimp.h"
+#include "wav.h"
 
 /*
 * Declarations
