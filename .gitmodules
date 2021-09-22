@@ -10,3 +10,9 @@
 [submodule "external/pocketfft"]
 	path = external/pocketfft
 	url = https://gitlab.mpcdf.mpg.de/mtr/pocketfft
+[submodule "external/muFFT"]
+	path = external/muFFT
+	url = https://github.com/Themaister/muFFT.git
+[submodule "external/pffft"]
+	path = external/pffft
+	url = https://bitbucket.org/jpommier/pffft.git
