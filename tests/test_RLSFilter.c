@@ -29,7 +29,7 @@ void test_RLSFilter_predict(void) {
     audiobuf_destroy(x);
     audiobuf_destroy(y);
     audiobuf_destroy(xbuf);
-    rls_destory(filt);
+    rls_destroy(filt);
 }
 
 void test_RLSFilter_update_predict(void) {
@@ -41,7 +41,7 @@ void test_RLSFilter_update_predict(void) {
     AudioBuf* ys   = audiobuf_from_wav("../tests/data/y_1.wav");
     AudioBuf* xbuf = audiobuf_new(0, len, calloc(len, sizeof(pfloat)));
 
-    pfloat y_hat, x, y, e;
+    pfloat y_hat=0, x=0, y=0, e=0;
     for (size_t i = 0; i < xs->len; i++) {
         x = xs->data[i];
         y = ys->data[i];
@@ -58,7 +58,7 @@ void test_RLSFilter_update_predict(void) {
     audiobuf_destroy(xs);
     audiobuf_destroy(ys);
     audiobuf_destroy(xbuf);
-    rls_destory(filt);
+    rls_destroy(filt);
 }
 
 void test_RLSFilter_train_0(void) {
@@ -75,7 +75,7 @@ void test_RLSFilter_train_0(void) {
 
     audiobuf_destroy(xs);
     audiobuf_destroy(ys);
-    rls_destory(filt);
+    rls_destroy(filt);
 }
 
 void test_RLSFilter_train_1(void) {
@@ -92,7 +92,7 @@ void test_RLSFilter_train_1(void) {
 
     audiobuf_destroy(xs);
     audiobuf_destroy(ys);
-    rls_destory(filt);
+    rls_destroy(filt);
 }
 
 // not needed when using generate_test_runner.rb

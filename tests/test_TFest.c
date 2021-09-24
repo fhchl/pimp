@@ -38,7 +38,7 @@ void test_estimate_tf(void) {
 
     audiobuf_destroy(in);
     audiobuf_destroy(out);
-    rls_destory(filt);
+    rls_destroy(filt);
 }
 
 int main(void) {

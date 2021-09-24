@@ -16,3 +16,6 @@
 [submodule "external/pffft"]
 	path = external/pffft
 	url = https://bitbucket.org/jpommier/pffft.git
+[submodule "external/Ne10"]
+	path = external/Ne10
+	url = https://github.com/projectNe10/Ne10.git

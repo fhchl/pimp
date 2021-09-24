@@ -4,7 +4,7 @@
 #include "unity.h"
 
 #define TEST_ARRAY_WITHIN(DELTA, EXPECTED, ACTUAL, NUM_ELEMENTS)                                                                                      \
-    _Generic((*EXPECTED),                                                                                                                             \
+    _Generic(*(EXPECTED),                                                                                                                             \
              float                                                                                                                                    \
              : _test_assert_array_float_within((float)(DELTA), (float*)(EXPECTED), (float*)(ACTUAL), (NUM_ELEMENTS)),                                 \
                double                                                                                                                                 \
@@ -16,7 +16,7 @@
 // Casts needed as all expressions in Generics branches must be valid (https://stackoverflow.com/a/24746034/2629879)
 
 #define TEST_ARRAY_EQUAL(EXPECTED, ACTUAL, NUM_ELEMENTS)                            \
-    _Generic((*EXPECTED),                                                           \
+    _Generic(*(EXPECTED),                                                           \
              float                                                                  \
              : TEST_ASSERT_EQUAL_FLOAT_ARRAY((EXPECTED), (ACTUAL), (NUM_ELEMENTS)), \
                double                                                               \
@@ -25,16 +25,16 @@
 #define TEST_WITHIN(DELTA, EXPECTED, ACTUAL)                      \
     _Generic((EXPECTED) + (ACTUAL),                               \
              float                                                \
-             : TEST_ASSERT_FLOAT_WITHIN(DELTA, EXPECTED, ACTUAL), \
+             : TEST_ASSERT_FLOAT_WITHIN((DELTA), (EXPECTED), (ACTUAL)), \
                double                                             \
-             : TEST_ASSERT_DOUBLE_WITHIN(DELTA, EXPECTED, ACTUAL))
+             : TEST_ASSERT_DOUBLE_WITHIN((DELTA), (EXPECTED), (ACTUAL)))
 
 #define TEST_EQUAL(EXPECTED, ACTUAL)                      \
     _Generic((EXPECTED) + (ACTUAL),                       \
              float                                        \
-             : TEST_ASSERT_EQUAL_FLOAT(EXPECTED, ACTUAL), \
+             : TEST_ASSERT_EQUAL_FLOAT((EXPECTED), (ACTUAL)), \
                double                                     \
-             : TEST_ASSERT_EQUAL_DOUBLE(EXPECTED, ACTUAL))
+             : TEST_ASSERT_EQUAL_DOUBLE((EXPECTED), (ACTUAL)))
 
 void _test_assert_array_float_within(float delta, float* expected, float* actual, size_t num_elements) {
     for (size_t i = 0; i < num_elements; i++) {
@@ -60,4 +60,27 @@ void _test_assert_array_complex_float_within(complex float delta, complex float*
         TEST_ASSERT_FLOAT_WITHIN(delta, creal(expected[i]), creal(actual[i]));
         TEST_ASSERT_FLOAT_WITHIN(delta, cimag(expected[i]), cimag(actual[i]));
     }
+}
+
+#define PRINT_ARRAY(ARR, NUM_ELEMENTS)                        \
+    _Generic(*(ARR),                                          \
+             pfloat                                           \
+             : _print_array_real((pfloat*)ARR, NUM_ELEMENTS), \
+               pcomplex                                       \
+             : _print_array_complex((pcomplex*)ARR, NUM_ELEMENTS))
+
+void _print_array_real(pfloat* arr, size_t n) {
+  for (size_t i = 0; i < n; i++)
+  {
+    printf("%.3f ", arr[i]);
+  }
+  printf("\n");
+}
+
+void _print_array_complex(pcomplex* arr, size_t n) {
+  for (size_t i = 0; i < n; i++)
+  {
+    printf("%.3f+%.3fi ", creal(arr[i]), cimag(arr[i]));
+  }
+  printf("\n");
 }

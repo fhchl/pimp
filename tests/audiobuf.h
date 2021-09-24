@@ -58,7 +58,7 @@ AudioBuf* audiobuf_from_wav(char* path) {
         check_error();
 
     pfloat* data = malloc(len * sizeof *data);
-    for (int i = 0; i < len; i++)
+    for (size_t i = 0; i < len; i++)
         data[i] = (pfloat)data_float[i];
 
     wav_close(fp);

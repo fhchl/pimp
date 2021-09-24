@@ -42,6 +42,39 @@ void test_fft_even(void) {
     //     printf("%.2f ", y[i]);
     // }
     // printf("\n");
+
+    destroy_rfft_plan(plan);
+}
+
+void test_fft_even_dynamic(void) {
+    rfft_plan plan = make_rfft_plan(N);
+
+    double* x = calloc(N, sizeof(*x));
+    x[0] = 1;
+    double complex* Ytrue = calloc(N, sizeof(*Ytrue));
+    Ytrue[0] = Ytrue[1] = Ytrue[2] = 1;
+
+    // same memory for y and Y
+    double complex* Y = malloc((N / 2 + 1) * sizeof *Y);
+    double* y = (double*)Y;
+
+    // work in y
+    memcpy(y, x, N * sizeof(*x));
+    rfft(plan, N, y, Y);
+    // PRINT_ARRAY(Y, N/2 + 1);
+    // PRINT_ARRAY(Ytrue, N/2 + 1);
+    TEST_ARRAY_WITHIN(1e-8, Ytrue, Y, N/2 + 1);
+
+
+    // now test backwards
+    irfft(plan, N, Y, y);
+    // PRINT_ARRAY(y, N);
+    TEST_ARRAY_WITHIN(1e-8, x, y, N);
+
+    destroy_rfft_plan(plan);
+    free(x);
+    free(Ytrue);
+    free(Y);
 }
 
 void test_fft_odd(void) {
@@ -72,6 +105,7 @@ void test_fft_odd(void) {
     //     printf("%.2f ", y[i]);
     // }
     // printf("\n");
+    destroy_rfft_plan(plan);
 }
 
 // not needed when using generate_test_runner.rb
@@ -79,5 +113,6 @@ int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_fft_even);
     RUN_TEST(test_fft_odd);
+    RUN_TEST(test_fft_even_dynamic);
     return UNITY_END();
 }
