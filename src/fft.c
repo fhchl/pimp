@@ -2,10 +2,9 @@
 #include <assert.h>
 
 #include "pimp.h"
-#include "fft.h"
 
 #if defined(PIMP_WITH_POCKETFFT)
-// can only be used with DTYPE=float
+// can only be used with DTYPE=double
 
 #include "pocketfft.h"
 

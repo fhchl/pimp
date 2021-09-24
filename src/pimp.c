@@ -5,7 +5,6 @@
 #include <tgmath.h>
 
 #include "pimp.h"
-#include "fft.h"
 
 void left_extend(size_t len, pfloat buf[len], pfloat x) {
     memmove(&buf[1], &buf[0], (len - 1) * sizeof *buf);
@@ -188,6 +187,8 @@ void rls_train(RLSFilter* self, size_t len, pfloat xs[len], pfloat ys[len]) {
     free(xbuf);
 }
 
+#if defined(PIMP_WITH_POCKETFFT) || defined(PIMP_WITH_NE10)
+
 BlockLMSFilter* blms_init(size_t len, size_t blocklen, pfloat stepsize, pfloat leakage) {
     assert((0 <= leakage) && (leakage <= 1));
     assert(0 <= stepsize);
@@ -319,3 +320,5 @@ void blms_train(BlockLMSFilter* self, size_t n, pfloat xs[n], pfloat ys[n]) {
     free(e);
     free(ebuf);
 }
+
+#endif

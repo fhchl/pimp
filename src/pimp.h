@@ -14,8 +14,6 @@
 typedef DTYPE         pfloat;
 typedef complex DTYPE pcomplex;
 
-#include "fft.h"
-
 void left_extend(size_t len, pfloat buf[len], pfloat x);
 void block_right_extend(size_t len, size_t blocklen, pfloat buf[len], pfloat x[blocklen]);
 
@@ -52,6 +50,17 @@ void       rls_update(RLSFilter* self, pfloat x[self->len], pfloat e);
 pfloat     rls_predict(RLSFilter* self, pfloat x[self->len]);
 void       rls_train(RLSFilter* self, size_t n, pfloat xs[n], pfloat ys[n]);
 
+#if defined(PIMP_WITH_POCKETFFT) || defined(PIMP_WITH_NE10)
+
+struct rfft_plan_i;
+typedef struct rfft_plan_i* rfft_plan;
+
+rfft_plan make_rfft_plan(size_t n);
+void      destroy_rfft_plan(rfft_plan plan);
+void      rfft(rfft_plan plan, size_t n, pfloat src[n], pcomplex dest[n / 2 + 1]);
+void      irfft(rfft_plan plan, size_t n, pcomplex src[n / 2 + 1], pfloat dest[n]);
+size_t    rfft_length(rfft_plan plan);
+
 typedef struct {
     size_t    len;
     size_t    blocklen;
@@ -71,5 +80,7 @@ void            blms_get_w(BlockLMSFilter* self, pfloat w[self->len]);
 void            blms_update(BlockLMSFilter* self, const pcomplex X[self->len + 1], pfloat e[self->blocklen]);
 void            blms_predict(BlockLMSFilter* self, const pcomplex X[self->len + 1], pfloat y[self->blocklen]);
 void            blms_train(BlockLMSFilter* self, size_t n, pfloat x[n], pfloat y[n]);
+
+#endif
 
 #endif /* __PIMP_H__ */

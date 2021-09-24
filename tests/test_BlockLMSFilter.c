@@ -72,7 +72,7 @@ void test_BlockLMSFilter_predict(void) {
         // PRINT_ARRAY((pfloat *)(blms->_Y), 2*LEN); // somehow interleaved samples are copied into yhat
         // printf("\n");
 
-        TEST_ARRAY_WITHIN(1e-8, y, y_hat, BLOCKLEN); //FIXME: FAILS
+        TEST_ARRAY_WITHIN(1e-8, y, y_hat, BLOCKLEN);
 
         x += BLOCKLEN;
         y += BLOCKLEN;

@@ -16,7 +16,7 @@ endif()
 
 # build options
 if(NOT DEFINED FFTLIB)
-    set(FFTLIB "pocketfft" CACHE STRING "select fft lib")
+    set(FFTLIB "" CACHE STRING "select fft lib")
 endif()
 
 if(NOT DEFINED BUILD_TESTS)
@@ -27,21 +27,27 @@ if(NOT DEFINED DTYPE)
     set(DTYPE "double" CACHE STRING "compile for floats or doubles")
 endif()
 
+if(NOT DEFINED TEST_FFTS)
+    set(TEST_FFTS ON CACHE BOOL "build FFT methods")
+endif()
+
 # compile time definitions
 if(FFTLIB STREQUAL "pocketfft")
     message(STATUS "compiling with FFTLIB=${FFTLIB}")
     add_library(pocketfft STATIC external/pocketfft/pocketfft.c)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE PIMP_WITH_POCKETFFT)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC PIMP_WITH_POCKETFFT)
     target_link_libraries(${PROJECT_NAME} pocketfft)
     target_include_directories(${PROJECT_NAME} PUBLIC external/pocketfft)
 elseif(FFTLIB STREQUAL "ne10")
     message(STATUS "compiling with FFTLIB=${FFTLIB}")
     add_subdirectory(external/Ne10)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC PIMP_WITH_NE10)
     target_compile_definitions(NE10
-   PUBLICNULINUX_PLATFORM=ON
-        PRIVATE NE10_LINUX_TARGET_ARCH=aarch64)
+        PUBLIC  GNULINUX_PLATFORM=ON
+        PUBLIC NE10_LINUX_TARGET_ARCH=aarch64)
 else()
-    message(FATAL_ERROR "FFTLIB=${FFTLIB} not implemented or not given")
+    message(STATUS "compiling witout FFT (for that set FFTLIB)")
+    set(TEST_FFTS OFF)
 endif()
 
 if(DTYPE STREQUAL "double" OR DTYPE STREQUAL "float")
@@ -90,24 +96,26 @@ if(BUILD_TESTS)
     target_link_libraries(${TEST_RLSFILTER} pimp wav::wav m unity)
     add_test(${TEST_RLSFILTER} ./${TEST_RLSFILTER} .)
 
-    set(TEST_BLOCKLMSFILTER test_BlockLMSFilter)
-    add_executable(${TEST_BLOCKLMSFILTER} tests/${TEST_BLOCKLMSFILTER}.c)
-    target_include_directories(${TEST_BLOCKLMSFILTER}
-        PRIVATE src
-        PRIVATE tests)
-    target_link_libraries(${TEST_BLOCKLMSFILTER} pimp wav::wav m unity)
-    add_test(${TEST_BLOCKLMSFILTER} ./${TEST_BLOCKLMSFILTER} .)
+    if(TEST_FFTS)
+        set(TEST_BLOCKLMSFILTER test_BlockLMSFilter)
+        add_executable(${TEST_BLOCKLMSFILTER} tests/${TEST_BLOCKLMSFILTER}.c)
+        target_include_directories(${TEST_BLOCKLMSFILTER}
+            PRIVATE src
+            PRIVATE tests)
+        target_link_libraries(${TEST_BLOCKLMSFILTER} pimp wav::wav m unity)
+        add_test(${TEST_BLOCKLMSFILTER} ./${TEST_BLOCKLMSFILTER} .)
 
-    set(TEST_FFT test_fft)
-    add_executable(${TEST_FFT} tests/test_fft.c)
-    target_include_directories(${TEST_FFT}
-    PRIVATE src
-    PRIVATE tests)
-    target_link_libraries(${TEST_FFT} pimp m unity)
-    add_test(${TEST_FFT} ./${TEST_FFT} .)
+        set(TEST_FFT test_fft)
+        add_executable(${TEST_FFT} tests/test_fft.c)
+        target_include_directories(${TEST_FFT}
+            PRIVATE src
+            PRIVATE tests)
+        target_link_libraries(${TEST_FFT} pimp m unity)
+        add_test(${TEST_FFT} ./${TEST_FFT} .)
+        endif()
+
+        # set(TEST_POCKETFFT test_pocketfft)
+        # add_executable(${TEST_POCKETFFT} external/pocketfft/ffttest.c)
+        # target_link_libraries(${TEST_POCKETFFT} pocketfft m)
+        # add_test(${TEST_POCKETFFT} ./${TEST_POCKETFFT} .)
     endif()
-
-    # set(TEST_POCKETFFT test_pocketfft)
-    # add_executable(${TEST_POCKETFFT} external/pocketfft/ffttest.c)
-    # target_link_libraries(${TEST_POCKETFFT} pocketfft m)
-    # add_test(${TEST_POCKETFFT} ./${TEST_POCKETFFT} .)
