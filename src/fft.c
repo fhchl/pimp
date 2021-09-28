@@ -1,9 +1,10 @@
 #include <string.h>
 #include <assert.h>
+#include <stdio.h>
 
 #include "pimp.h"
 
-#if PIMP_WITH_POCKETFFT
+#if defined(PIMP_WITH_POCKETFFT)
 
 #if !PIMP_USE_DOUBLE
 # error "pocketfft can only be used with doubles (set PIMP_USE_DOUBLES)"
@@ -11,9 +12,8 @@
 
 #include "pocketfft.h"
 
-void rfft(rfft_plan plan, size_t n, pfloat src[n], pcomplex dest[n / 2 + 1]) {
-    assert(rfft_length(plan) == n);
-
+void rfft(rfft_plan plan, pfloat* src, pcomplex* dest) {
+    size_t n = rfft_length(plan);
     // use dest as workspace for floats
     pfloat* dest_float = (pfloat *)dest;
     memmove(dest_float, src, n*sizeof *src);
@@ -29,16 +29,15 @@ void rfft(rfft_plan plan, size_t n, pfloat src[n], pcomplex dest[n / 2 + 1]) {
         dest[n / 2] = creal(dest[n / 2]);
 }
 
-void irfft(rfft_plan plan, size_t n, pcomplex src[n / 2 + 1], pfloat dest[n]) {
-    assert(rfft_length(plan) == n);
-
+void irfft(rfft_plan plan, pcomplex* src, pfloat* dest) {
+    size_t n = rfft_length(plan);
     // cimag(src[0]) is assumed 0, as is cimag(src[n/2]) if n is even
     memmove(dest + 1, src + 1, (n - 1) * sizeof(*dest));
     dest[0] = creal(src[0]); // dest[0] is real DC
     rfft_backward(plan, dest, 1.0 / n);
 }
 
-#elif PIMP_FFT_NE10
+#elif defined(PIMP_WITH_NE10)
 
 #include "NE10.h"
 
@@ -46,37 +45,42 @@ void irfft(rfft_plan plan, size_t n, pcomplex src[n / 2 + 1], pfloat dest[n]) {
 #error "Ne10 can only be used with floats (don't set PIMP_USE_DOUBLE)"
 #endif
 
-// Initialise Ne10, using hardware auto-detection to set library function pointers
-    if (ne10_init() != NE10_OK)
-    {
-        fprintf(stderr, "Failed to initialise Ne10.\n");
-        return 1;
+int ne_10_is_initialized = 0;
+
+int is_power_of_two(size_t n) {
+    return (n != 0) && ((n & (n - 1)) == 0);
+}
+
+rfft_plan make_rfft_plan(size_t n) {
+    assert(is_power_of_two(n));
+    if (!ne_10_is_initialized) {
+        if (ne10_init() != NE10_OK)
+        {
+            fprintf(stderr, "Failed to initialise Ne10.\n");
+            return 0;
+        }
+        ne_10_is_initialized = 1;
     }
+    return ne10_fft_alloc_r2c_float32((ne10_int32_t)n);
+}
 
-    // Prepare the complex-to-complex single precision floating point FFT configuration
-    // structure for inputs of length `SAMPLES`. (You need only generate this once for a
-    // particular input size.)
-    cfg = ne10_fft_alloc_c2c_float32(SAMPLES);
+void destroy_rfft_plan(rfft_plan plan) {
+    ne10_fft_destroy_r2c_float32(plan);
+}
 
-    // Generate test input values (with both real and imaginary components)
-    for (int i = 0; i < SAMPLES; i++)
-    {
-        src[i].r = (ne10_float32_t)rand() / RAND_MAX * 50.0f;
-        src[i].i = (ne10_float32_t)rand() / RAND_MAX * 50.0f;
-    }
+void rfft(rfft_plan plan, pfloat* src, pcomplex* dest) {
+    (*ne10_fft_r2c_1d_float32)(
+        (ne10_fft_cpx_float32_t*)dest, src, plan);
+}
 
-    // Perform the FFT (for an IFFT, the last parameter should be `1`)
-    ne10_fft_c2c_1d_float32(dst, src, cfg, 0);
+void irfft(rfft_plan plan, pcomplex* src, pfloat* dest) {;
+    ne10_fft_c2r_1d_float32(dest, (ne10_fft_cpx_float32_t*)src, plan);
+}
 
-    // Display the results
-    for (int i = 0; i < SAMPLES; i++)
-    {
-        printf( "IN[%2d]: %10.4f + %10.4fi\t", i, src[i].r, src[i].i);
-        printf("OUT[%2d]: %10.4f + %10.4fi\n", i, dst[i].r, dst[i].i);
-    }
-
-    // Free the allocated configuration structure
-    ne10_fft_destroy_c2c_float32(cfg);
-
+size_t rfft_length(rfft_plan plan) {
+    fprintf(stderr, "not implemented yet");
+    return 1;
+    //return plan->nfft;
+}
 
 #endif

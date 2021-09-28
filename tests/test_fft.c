@@ -16,16 +16,16 @@ void tearDown(void) {}
 void test_fft_even(void) {
     rfft_plan plan = make_rfft_plan(N);
 
-    double x[N] = {1, 0, 0, 0};
-    double complex Ytrue[N/2+1] = {1, 1, 1}; // expected
+    pfloat x[N] = {1, 0, 0, 0};
+    pcomplex Ytrue[N/2+1] = {1, 1, 1}; // expected
 
     // same memory for y and Y
-    double complex Y[N / 2 + 1];
-    double* y = (double*)Y;
+    pcomplex Y[N / 2 + 1];
+    pfloat* y = (pfloat*)Y;
 
     // work in y
     memcpy(y, x, N * sizeof(*x));
-    rfft(plan, N, y, Y);
+    rfft(plan, y, Y);
     TEST_ARRAY_WITHIN(1e-8, Ytrue, Y, N/2 + 1);
     // for (size_t i = 0; i < N/2+1; i++)
     // {
@@ -35,7 +35,7 @@ void test_fft_even(void) {
 
 
     // now test backwards
-    irfft(plan, N, Y, y);
+    irfft(plan, Y, y);
     TEST_ARRAY_WITHIN(1e-8, x, y, N);
     // for (size_t i = 0; i < N; i++)
     // {
@@ -49,25 +49,25 @@ void test_fft_even(void) {
 void test_fft_even_dynamic(void) {
     rfft_plan plan = make_rfft_plan(N);
 
-    double* x = calloc(N, sizeof(*x));
+    pfloat* x = calloc(N, sizeof(*x));
     x[0] = 1;
-    double complex* Ytrue = calloc(N, sizeof(*Ytrue));
+    pcomplex* Ytrue = calloc(N, sizeof(*Ytrue));
     Ytrue[0] = Ytrue[1] = Ytrue[2] = 1;
 
     // same memory for y and Y
-    double complex* Y = malloc((N / 2 + 1) * sizeof *Y);
-    double* y = (double*)Y;
+    pcomplex* Y = malloc((N / 2 + 1) * sizeof *Y);
+    pfloat* y = (pfloat*)Y;
 
     // work in y
     memcpy(y, x, N * sizeof(*x));
-    rfft(plan, N, y, Y);
+    rfft(plan, y, Y);
     // PRINT_ARRAY(Y, N/2 + 1);
     // PRINT_ARRAY(Ytrue, N/2 + 1);
     TEST_ARRAY_WITHIN(1e-8, Ytrue, Y, N/2 + 1);
 
 
     // now test backwards
-    irfft(plan, N, Y, y);
+    irfft(plan, Y, y);
     // PRINT_ARRAY(y, N);
     TEST_ARRAY_WITHIN(1e-8, x, y, N);
 
@@ -80,16 +80,16 @@ void test_fft_even_dynamic(void) {
 void test_fft_odd(void) {
     rfft_plan plan = make_rfft_plan(Nodd);
 
-    double x[Nodd] = {1, 0, 0, 0, 0};
-    double complex Ytrue[Nodd/2+1] = {1, 1, 1}; // expected
+    pfloat x[Nodd] = {1, 0, 0, 0, 0};
+    pcomplex Ytrue[Nodd/2+1] = {1, 1, 1}; // expected
 
     // same memory for y and Y
-    double complex Y[Nodd / 2 + 1];
-    double* y = (double*)Y;
+    pcomplex Y[Nodd / 2 + 1];
+    pfloat* y = (pfloat*)Y;
 
     // work in y
     memcpy(y, x, Nodd * sizeof(*x));
-    rfft(plan, Nodd, y, Y);
+    rfft(plan, y, Y);
     TEST_ARRAY_WITHIN(1e-8, Ytrue, Y, Nodd/2 + 1);
     // for (size_t i = 0; i < Nodd/2+1; i++)
     // {
@@ -98,7 +98,7 @@ void test_fft_odd(void) {
     // printf("\n");
 
     // now test backwards
-    irfft(plan, Nodd, Y, y);
+    irfft(plan, Y, y);
     TEST_ARRAY_WITHIN(1e-8, x, y, Nodd);
     // for (size_t i = 0; i < Nodd; i++)
     // {

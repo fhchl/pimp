@@ -232,11 +232,11 @@ void blms_set_w(BlockLMSFilter* self, const pfloat w[self->len]) {
     memcpy(_w, w, n * sizeof *w);
     // last n taps are 0
     memset(&_w[n], 0, n * sizeof *w);
-    rfft(self->plan, 2 * n, _w, self->W);
+    rfft(self->plan, _w, self->W);
 }
 
 void blms_get_w(BlockLMSFilter* self, pfloat w[2 * self->len]) {
-    irfft(self->plan, 2 * self->len, self->W, w);
+    irfft(self->plan, self->W, w);
 }
 
 void blms_predict(BlockLMSFilter* self, const pcomplex X[self->len + 1], pfloat y[self->blocklen]) {
@@ -248,7 +248,7 @@ void blms_predict(BlockLMSFilter* self, const pcomplex X[self->len + 1], pfloat 
         self->_Y[i] = X[i] * self->W[i];
     // reuse temporary array _Y of size 2*(len+1) * sizeof(pfloat)
     pfloat* _y = (pfloat*)(self->_Y);
-    irfft(self->plan, 2 * n, self->_Y, _y);
+    irfft(self->plan, self->_Y, _y);
 
     // return only last block
     memcpy(y, &_y[2 * n - bn], bn * sizeof *_y);
@@ -264,7 +264,7 @@ void blms_update(BlockLMSFilter* self, const pcomplex X[self->len + 1], pfloat e
 
     // E = DFT(_0e)
     pcomplex* U = self->_U;
-    rfft(self->plan, 2 * self->len, _0e, U);
+    rfft(self->plan, _0e, U);
 
     // Newton step
     // W <- leakage * W + stepsize/(|X|^2 + eps) * conj(X) * E
@@ -278,9 +278,9 @@ void blms_update(BlockLMSFilter* self, const pcomplex X[self->len + 1], pfloat e
 
     // project on causal solution set by zeroing second half
     pfloat* w = (pfloat*)self->W;
-    irfft(self->plan, 2 * self->len, self->W, w);
+    irfft(self->plan, self->W, w);
     memset(&w[self->len], 0, self->len);
-    rfft(self->plan, 2 * self->len, w, self->W);
+    rfft(self->plan, w, self->W);
 }
 
 void blms_train(BlockLMSFilter* self, size_t n, pfloat xs[n], pfloat ys[n]) {
@@ -302,7 +302,7 @@ void blms_train(BlockLMSFilter* self, size_t n, pfloat xs[n], pfloat ys[n]) {
 
     for (size_t i = 0; i < n / blocklen; i++) {
         block_right_extend(2 * len, blocklen, xbuf, x);
-        rfft(self->plan, 2 * len, xbuf, Xbuf);
+        rfft(self->plan, xbuf, Xbuf);
         blms_predict(self, Xbuf, y_hat);
         for (size_t i = 0; i < blocklen; i++)
             e[i] = y[i] - y_hat[i];

@@ -54,14 +54,21 @@ void       rls_train(RLSFilter* self, size_t n, pfloat xs[n], pfloat ys[n]);
 
 #if PIMP_WITH_POCKETFFT || PIMP_WITH_NE10
 
+#if PIMP_WITH_NE10
+#include "NE10.h"
+typedef ne10_fft_r2c_cfg_float32_t rfft_plan;
+#elif PIMP_WITH_POCKETFFT
 struct rfft_plan_i;
 typedef struct rfft_plan_i* rfft_plan;
+#endif
 
 rfft_plan make_rfft_plan(size_t n);
 void      destroy_rfft_plan(rfft_plan plan);
-void      rfft(rfft_plan plan, size_t n, pfloat src[n], pcomplex dest[n / 2 + 1]);
-void      irfft(rfft_plan plan, size_t n, pcomplex src[n / 2 + 1], pfloat dest[n]);
 size_t    rfft_length(rfft_plan plan);
+// apply real to complex dft to `src` of length `n` and save in `dest` of length `n/2 +1`
+void      rfft(rfft_plan plan, pfloat* src, pcomplex* dest);
+// apply complex to real idft to `src` of length `n/2+1` and save in `dest` of `n`
+void      irfft(rfft_plan plan, pcomplex* src, pfloat* dest);
 
 typedef struct {
     size_t    len;
