@@ -4,5 +4,6 @@
         "tests.h": "c",
         "fft.h": "c",
         "pimp.h": "c"
-    }
+    },
+    "cmake.configureArgs": ["--clean-first"]
 }

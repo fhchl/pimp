@@ -6,13 +6,14 @@ buildType:
       long: Emit debug information
       buildType: Debug
       settings:
-        FFTLIB: pocketfft
-        BUILD_TESTS: 1
-        USE_DOUBLE: 1
+        PIMP_FFTLIB: pocketfft
+        PIMP_BUILD_TESTS: 1
+        PIMP_USE_DOUBLE: 1
     arm:
       short: xc-arm
       long: xc for arm
       buildType: Debug
       settings:
-        FFTLIB: ne10
+        PIMP_FFTLIB: ne10
         CMAKE_TOOLCHAIN_FILE: cmake/arm-linux-toolchain.cmake
+        PIMP_USE_DOUBLE: 0

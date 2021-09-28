@@ -11,45 +11,52 @@ target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra -Wpedantic)
 
 # build options
 
-if(NOT DEFINED FFTLIB)
-    set(FFTLIB "none" CACHE STRING "fft library")
+if(NOT DEFINED PIMP_FFTLIB)
+    set(PIMP_FFTLIB "none" CACHE STRING "fft library")
 endif()
 
-if(NOT DEFINED BUILD_TESTS)
-    set(BUILD_TESTS TRUE CACHE BOOL "build tests")
+if(NOT DEFINED PIMP_BUILD_TESTS)
+    set(PIMP_BUILD_TESTS ON CACHE BOOL "build tests")
 endif()
 
-if(NOT DEFINED TEST_FFTS)
-    set(TEST_FFTS TRUE CACHE BOOL "build fft tests")
+if(NOT DEFINED PIMP_TEST_FFTS)
+    set(PIMP_TEST_FFTS ON CACHE BOOL "build fft tests")
 endif()
 
+if(NOT DEFINED PIMP_USE_DOUBLE)
+    set(PIMP_USE_DOUBLE ON CACHE BOOL "compile for float or double")
+endif()
 
 # compile time definitions
-if(FFTLIB STREQUAL "pocketfft")
-    message(STATUS "compiling with FFTLIB=${FFTLIB}")
-    add_library(pocketfft STATIC external/pocketfft/pocketfft.c)
+if(PIMP_FFTLIB STREQUAL "pocketfft")
+    message(STATUS "compiling with PIMP_FFTLIB=${PIMP_FFTLIB}")
     target_compile_definitions(${PROJECT_NAME} PUBLIC PIMP_WITH_POCKETFFT)
+    add_library(pocketfft STATIC external/pocketfft/pocketfft.c)
     target_link_libraries(${PROJECT_NAME} pocketfft)
     target_include_directories(${PROJECT_NAME} PUBLIC external/pocketfft)
-elseif(FFTLIB STREQUAL "ne10")
-    message(STATUS "compiling with FFTLIB=${FFTLIB}")
+    set(PIMP_USE_DOUBLE ON)
+elseif(PIMP_FFTLIB STREQUAL "ne10")
+    message(STATUS "compiling with PIMP_FFTLIB=${PIMP_FFTLIB}")
     target_compile_definitions(${PROJECT_NAME} PUBLIC PIMP_WITH_NE10)
     add_subdirectory(external/Ne10)
-    target_link_libraries(${PROJECT_NAME} NE_10)
+    target_link_libraries(${PROJECT_NAME} NE10)
+    set(PIMP_USE_DOUBLE OFF)
 else()
-    message(STATUS "compiling witout FFT (for that set FFTLIB)")
-    set(TEST_FFTS OFF)
+    message(STATUS "compiling witout FFT (for that set PIMP_FFTLIB)")
+    set(PIMP_TEST_FFTS OFF)
 endif()
 
-if(NOT DEFINED USE_DOUBLE)
+if(NOT PIMP_USE_DOUBLE)
+target_compile_definitions(${PROJECT_NAME} PUBLIC PIMP_USE_DOUBLE=0)
     message(STATUS "compiling with pfloat == float")
 else()
+    target_compile_definitions(${PROJECT_NAME} PUBLIC PIMP_USE_DOUBLE=1)
     message(STATUS "compiling with pfloat == double")
-    target_compile_definitions(${PROJECT_NAME} PUBLIC USE_DOUBLE)
 endif()
 
+
 # tests
-if(BUILD_TESTS)
+if(PIMP_BUILD_TESTS)
     enable_testing()
 
     add_subdirectory(external/Unity)
@@ -57,12 +64,14 @@ if(BUILD_TESTS)
 
     add_subdirectory(external/libwav)
 
+    link_libraries(unity wav::wav ${PROJECT_NAME})
+
     set(TEST_AUDIOBUF test_AudioBuf)
     add_executable(${TEST_AUDIOBUF} tests/${TEST_AUDIOBUF}.c)
     target_include_directories(${TEST_AUDIOBUF}
         PRIVATE src
         PRIVATE tests)
-    target_link_libraries(${TEST_AUDIOBUF} ${PROJECT_NAME} wav::wav unity)
+    target_link_libraries(${TEST_AUDIOBUF} ${PROJECT_NAME} wav::wav)
     add_test(${TEST_AUDIOBUF} ./${TEST_AUDIOBUF} .)
 
     set(TEST_TFEST test_TFest)
@@ -70,7 +79,7 @@ if(BUILD_TESTS)
     target_include_directories(${TEST_TFEST}
         PRIVATE src
         PRIVATE tests)
-    target_link_libraries(${TEST_TFEST} ${PROJECT_NAME} wav::wav unity)
+    target_link_libraries(${TEST_TFEST} ${PROJECT_NAME} wav::wav)
     add_test(${TEST_TFEST} ./${TEST_TFEST} .)
 
     set(TEST_LMSFILTER test_LMSFilter)
@@ -78,7 +87,7 @@ if(BUILD_TESTS)
     target_include_directories(${TEST_LMSFILTER}
         PRIVATE src
         PRIVATE tests)
-    target_link_libraries(${TEST_LMSFILTER} ${PROJECT_NAME} wav::wav unity)
+    target_link_libraries(${TEST_LMSFILTER} ${PROJECT_NAME} wav::wav)
     add_test(${TEST_LMSFILTER} ./${TEST_LMSFILTER} .)
 
     set(TEST_RLSFILTER test_RLSFilter)
@@ -86,16 +95,16 @@ if(BUILD_TESTS)
     target_include_directories(${TEST_RLSFILTER}
         PRIVATE src
         PRIVATE tests)
-    target_link_libraries(${TEST_RLSFILTER} ${PROJECT_NAME} wav::wav unity)
+    target_link_libraries(${TEST_RLSFILTER} ${PROJECT_NAME} wav::wav)
     add_test(${TEST_RLSFILTER} ./${TEST_RLSFILTER} .)
 
-    if(TEST_FFTS)
+    if(PIMP_TEST_FFTS)
         set(TEST_BLOCKLMSFILTER test_BlockLMSFilter)
         add_executable(${TEST_BLOCKLMSFILTER} tests/${TEST_BLOCKLMSFILTER}.c)
         target_include_directories(${TEST_BLOCKLMSFILTER}
             PRIVATE src
             PRIVATE tests)
-        target_link_libraries(${TEST_BLOCKLMSFILTER} ${PROJECT_NAME} wav::wav unity)
+        target_link_libraries(${TEST_BLOCKLMSFILTER} ${PROJECT_NAME} wav::wav)
         add_test(${TEST_BLOCKLMSFILTER} ./${TEST_BLOCKLMSFILTER} .)
 
         set(TEST_FFT test_fft)
@@ -103,14 +112,14 @@ if(BUILD_TESTS)
         target_include_directories(${TEST_FFT}
             PRIVATE src
             PRIVATE tests)
-        target_link_libraries(${TEST_FFT} ${PROJECT_NAME} unity)
+        target_link_libraries(${TEST_FFT} ${PROJECT_NAME})
         add_test(${TEST_FFT} ./${TEST_FFT} .)
         endif()
 
         if (PIMP_WITH_POCKETFFT)
             set(TEST_POCKETFFT test_pocketfft)
             add_executable(${TEST_POCKETFFT} external/pocketfft/ffttest.c)
-            target_link_libraries(${TEST_POCKETFFT} pocketfft m)
+            target_link_libraries(${TEST_POCKETFFT} pocketfft)
             add_test(${TEST_POCKETFFT} ./${TEST_POCKETFFT} .)
         endif()
     endif()

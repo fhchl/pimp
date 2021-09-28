@@ -3,8 +3,11 @@
 
 #include "pimp.h"
 
-#if defined(PIMP_WITH_POCKETFFT)
-// can only be used with DTYPE=double
+#if PIMP_WITH_POCKETFFT
+
+#if !PIMP_USE_DOUBLE
+# error "pocketfft can only be used with doubles (set PIMP_USE_DOUBLES)"
+#endif
 
 #include "pocketfft.h"
 
@@ -35,6 +38,45 @@ void irfft(rfft_plan plan, size_t n, pcomplex src[n / 2 + 1], pfloat dest[n]) {
     rfft_backward(plan, dest, 1.0 / n);
 }
 
-#elif defined(PIMP_FFT_NE10)
-# error "NE10 FFT not implemented!\n";
+#elif PIMP_FFT_NE10
+
+#include "NE10.h"
+
+#if PIMP_USE_DOUBLE
+#error "Ne10 can only be used with floats (don't set PIMP_USE_DOUBLE)"
+#endif
+
+// Initialise Ne10, using hardware auto-detection to set library function pointers
+    if (ne10_init() != NE10_OK)
+    {
+        fprintf(stderr, "Failed to initialise Ne10.\n");
+        return 1;
+    }
+
+    // Prepare the complex-to-complex single precision floating point FFT configuration
+    // structure for inputs of length `SAMPLES`. (You need only generate this once for a
+    // particular input size.)
+    cfg = ne10_fft_alloc_c2c_float32(SAMPLES);
+
+    // Generate test input values (with both real and imaginary components)
+    for (int i = 0; i < SAMPLES; i++)
+    {
+        src[i].r = (ne10_float32_t)rand() / RAND_MAX * 50.0f;
+        src[i].i = (ne10_float32_t)rand() / RAND_MAX * 50.0f;
+    }
+
+    // Perform the FFT (for an IFFT, the last parameter should be `1`)
+    ne10_fft_c2c_1d_float32(dst, src, cfg, 0);
+
+    // Display the results
+    for (int i = 0; i < SAMPLES; i++)
+    {
+        printf( "IN[%2d]: %10.4f + %10.4fi\t", i, src[i].r, src[i].i);
+        printf("OUT[%2d]: %10.4f + %10.4fi\n", i, dst[i].r, dst[i].i);
+    }
+
+    // Free the allocated configuration structure
+    ne10_fft_destroy_c2c_float32(cfg);
+
+
 #endif

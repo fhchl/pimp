@@ -7,7 +7,7 @@
 
 #define CHECK_ALLOC(errcode) assert(errcode)
 
-#ifdef USE_DOUBLE
+#if PIMP_USE_DOUBLE
 #define DTYPE double
 #else
 #define DTYPE float
@@ -52,7 +52,7 @@ void       rls_update(RLSFilter* self, pfloat x[self->len], pfloat e);
 pfloat     rls_predict(RLSFilter* self, pfloat x[self->len]);
 void       rls_train(RLSFilter* self, size_t n, pfloat xs[n], pfloat ys[n]);
 
-#if defined(PIMP_WITH_POCKETFFT) || defined(PIMP_WITH_NE10)
+#if PIMP_WITH_POCKETFFT || PIMP_WITH_NE10
 
 struct rfft_plan_i;
 typedef struct rfft_plan_i* rfft_plan;
