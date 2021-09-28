@@ -51,9 +51,9 @@ void test_RLSFilter_update_predict(void) {
         rls_update(filt, xbuf->data, e);
     }
 
-    TEST_ARRAY_WITHIN(1e-8, w, filt->w, len);
-    TEST_WITHIN(1e-8, y, y_hat);
-    TEST_WITHIN(1e-8, 0, e);
+    TEST_ARRAY_WITHIN(1e-5, w, filt->w, len);
+    TEST_WITHIN(1e-5, y, y_hat);
+    TEST_WITHIN(1e-5, 0, e);
 
     audiobuf_destroy(xs);
     audiobuf_destroy(ys);
@@ -71,7 +71,7 @@ void test_RLSFilter_train_0(void) {
 
     rls_train(filt, xs->len, xs->data, ys->data);
 
-    TEST_ARRAY_WITHIN(1e-8, w_0, filt->w, len);
+    TEST_ARRAY_WITHIN(1e-5, w_0, filt->w, len);
 
     audiobuf_destroy(xs);
     audiobuf_destroy(ys);
@@ -88,7 +88,7 @@ void test_RLSFilter_train_1(void) {
 
     rls_train(filt, xs->len, xs->data, ys->data);
 
-    TEST_ARRAY_WITHIN(1e-8, w_1, filt->w, len);
+    TEST_ARRAY_WITHIN(1e-5, w_1, filt->w, len);
 
     audiobuf_destroy(xs);
     audiobuf_destroy(ys);

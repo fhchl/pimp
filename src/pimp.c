@@ -301,7 +301,6 @@ void blms_train(BlockLMSFilter* self, size_t n, pfloat xs[n], pfloat ys[n]) {
     CHECK_ALLOC(ebuf);
 
     for (size_t i = 0; i < n / blocklen; i++) {
-        printf("%li ", i);
         block_right_extend(2 * len, blocklen, xbuf, x);
         rfft(self->plan, 2 * len, xbuf, Xbuf);
         blms_predict(self, Xbuf, y_hat);
