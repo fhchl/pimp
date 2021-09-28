@@ -1,0 +1,18 @@
+buildType:
+  default: default
+  choices:
+    default:
+      short: on desktop
+      long: Emit debug information
+      buildType: Debug
+      settings:
+        FFTLIB: pocketfft
+        BUILD_TESTS: 1
+        USE_DOUBLE: 1
+    arm:
+      short: xc-arm
+      long: xc for arm
+      buildType: Debug
+      settings:
+        FFTLIB: ne10
+        CMAKE_TOOLCHAIN_FILE: cmake/arm-linux-toolchain.cmake

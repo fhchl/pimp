@@ -7,8 +7,10 @@
 
 #define CHECK_ALLOC(errcode) assert(errcode)
 
-#ifndef DTYPE
+#ifdef USE_DOUBLE
 #define DTYPE double
+#else
+#define DTYPE float
 #endif
 
 typedef DTYPE         pfloat;
