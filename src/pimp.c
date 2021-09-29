@@ -194,6 +194,8 @@ BlockLMSFilter* blms_init(size_t len, size_t blocklen, pfloat stepsize, pfloat l
     assert(0 <= stepsize);
     assert(blocklen <= len);
 
+    pfloat Pavg_init = 1;
+
     BlockLMSFilter* blms = malloc(sizeof *blms);
     CHECK_ALLOC(blms);
     blms->W = calloc(len + 1, sizeof *(blms->W));
@@ -204,12 +206,16 @@ BlockLMSFilter* blms_init(size_t len, size_t blocklen, pfloat stepsize, pfloat l
     CHECK_ALLOC(blms->_Y);
     blms->_U = calloc((len + 1), sizeof *(blms->_U));
     CHECK_ALLOC(blms->_U);
+    blms->Pavg = malloc((len + 1) * sizeof *(blms->Pavg));
+    CHECK_ALLOC(blms->Pavg);
+    for (size_t i = 0; i < len; i++) blms->Pavg[i] = Pavg_init;
 
     blms->len      = len;
     blms->blocklen = blocklen;
     blms->stepsize = stepsize;
     blms->eps      = 1e-8;
     blms->leakage  = leakage;
+    blms->avg      = 0.5;
 
     return blms;
 }
@@ -229,9 +235,9 @@ void blms_set_w(BlockLMSFilter* self, const pfloat w[self->len]) {
     // work in space of self.W which has size 2*(n+1) * sizeof(pfloat)
     pfloat* _w = (pfloat*)(self->W);
     // first n taps are w
-    memcpy(_w, w, n * sizeof *w);
+    memcpy(_w, w, n * sizeof *_w);
     // last n taps are 0
-    memset(&_w[n], 0, n * sizeof *w);
+    memset(&_w[n], 0, n * sizeof *_w);
     rfft(self->plan, _w, self->W);
 }
 
@@ -251,11 +257,17 @@ void blms_predict(BlockLMSFilter* self, const pcomplex X[self->len + 1], pfloat 
     irfft(self->plan, self->_Y, _y);
 
     // return only last block
-    memcpy(y, &_y[2 * n - bn], bn * sizeof *_y);
+    memcpy(y, &_y[2 * n - bn], bn * sizeof *y);
 }
 
 void blms_update(BlockLMSFilter* self, const pcomplex X[self->len + 1], pfloat e[self->len]) {
     pfloat eps = 1e-5;
+
+    // update PSD estimate
+    for (size_t i = 0; i < self->len + 1; i++)
+    {
+        self->Pavg[i] = pow(cabs(X[i]),2)*self->avg + (1-self->avg)*self->Pavg[i];
+    }
 
     // _0e = [0..., e...]
     pfloat* _0e = (pfloat*)self->_U;
@@ -270,16 +282,16 @@ void blms_update(BlockLMSFilter* self, const pcomplex X[self->len + 1], pfloat e
     // W <- leakage * W + stepsize/(|X|^2 + eps) * conj(X) * E
     for (size_t i = 0; i < self->len + 1; i++) {
         // U = stepsize/(|X|^2 + eps) * conj(X) * E
-        U[i] *= self->stepsize / (pow(cabs(X[i]), 2) + eps) * conj(X[i]);
+        U[i] *= self->stepsize / (self->Pavg[i] + eps) * conj(X[i]);
         //W <- leakage * W + U
         self->W[i] *= self->leakage;
         self->W[i] += U[i];
     }
 
-    // project on causal solution set by zeroing second half
+    // project on causal solution by zeroing second half
     pfloat* w = (pfloat*)self->W;
     irfft(self->plan, self->W, w);
-    memset(&w[self->len], 0, self->len);
+    memset(&w[self->len], 0, self->len * sizeof *w);
     rfft(self->plan, w, self->W);
 }
 

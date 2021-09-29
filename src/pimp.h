@@ -14,7 +14,7 @@
 #endif
 
 typedef DTYPE         pfloat;
-typedef complex DTYPE pcomplex;
+typedef _Complex DTYPE pcomplex;
 
 void left_extend(size_t len, pfloat buf[len], pfloat x);
 void block_right_extend(size_t len, size_t blocklen, pfloat buf[len], pfloat x[blocklen]);
@@ -77,6 +77,8 @@ typedef struct {
     pfloat    leakage;
     pfloat    eps;
     pcomplex* W;
+    pfloat*   Pavg;
+    pfloat    avg; // PSD averaging time constant
     rfft_plan plan;
     pcomplex* _Y; // temp array in prediction
     pcomplex* _U; // temp array in update

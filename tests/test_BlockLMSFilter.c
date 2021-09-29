@@ -6,7 +6,7 @@
 #include "pimp.h"
 #include "tests.h"
 
-#define LEN 2
+#define LEN 8
 #define BLOCKLEN 2
 
 BlockLMSFilter* blms;
@@ -23,7 +23,8 @@ void test_set_get_w(void) {
     pfloat   w[LEN]        = {1, 0};
     pfloat   _w[2 * LEN]   = {0};
     pfloat   zeros[LEN]    = {0};
-    pcomplex ones[LEN + 1] = {1., 1., 1.};
+    pcomplex ones[LEN + 1];
+    for (size_t i = 0; i < LEN+1; i++) ones[i] = 1;
 
     blms_set_w(blms, w);
 
@@ -123,38 +124,35 @@ void test_BlockLMSFilter_update_predict(void) {
     audiobuf_destroy(out);
 }
 
-void test_BlockLMSFilter_train_0(void) {
-    pfloat wtrue[LEN] = {0.5, 0};
+void test_BlockLMSFilter_train(void) {
+    pfloat w0[LEN] = {0.5, 0};
+    pfloat w1[LEN] = {0, 0.5};
+    pfloat w3[LEN] = {0, 0.5, -0.5};
+    pfloat w4[LEN] = {0.1, 0.5, -0.5};
+
+    pfloat* wtrue[4] = {w0, w1, w3, w4};
 
     AudioBuf* x = audiobuf_from_wav("../tests/data/x.wav");
-    AudioBuf* y = audiobuf_from_wav("../tests/data/y_0.wav");
+    for (size_t i = 0; i < sizeof(wtrue) / sizeof(*wtrue); i++)
+    {
+        blms_destroy(blms);
+        blms = blms_init(LEN, BLOCKLEN, 0.1, 1);
 
-    blms_train(blms, x->len, x->data, y->data);
+        printf("test_BlockLMSFilter_train: %ld \n", i);
+        char path[256];
+        snprintf(path, sizeof(path), "../tests/data/y_%ld.wav", i);
+        AudioBuf* y = audiobuf_from_wav(path);
 
-    pfloat w[2 * LEN];
-    blms_get_w(blms, w);
+        blms_train(blms, x->len, x->data, y->data);
 
-    TEST_ARRAY_WITHIN(1e-5, wtrue, w, LEN);
+        pfloat w[2 * LEN];
+        blms_get_w(blms, w);
 
+        TEST_ARRAY_WITHIN(1e-5, wtrue[i], w, LEN);
+
+        audiobuf_destroy(y);
+    }
     audiobuf_destroy(x);
-    audiobuf_destroy(y);
-}
-
-void test_BlockLMSFilter_train_1(void) {
-    pfloat wtrue[LEN] = {0, 0.5};
-
-    AudioBuf* x = audiobuf_from_wav("../tests/data/x.wav");
-    AudioBuf* y = audiobuf_from_wav("../tests/data/y_1.wav");
-
-    blms_train(blms, x->len, x->data, y->data);
-
-    pfloat w[2 * LEN];
-    blms_get_w(blms, w);
-
-    TEST_ARRAY_WITHIN(1e-5, wtrue, w, LEN);
-
-    audiobuf_destroy(x);
-    audiobuf_destroy(y);
 }
 
 // not needed when using generate_test_runner.rb
@@ -163,7 +161,6 @@ int main(void) {
     RUN_TEST(test_set_get_w);
     RUN_TEST(test_BlockLMSFilter_predict);
     RUN_TEST(test_BlockLMSFilter_update_predict);
-    RUN_TEST(test_BlockLMSFilter_train_0);
-    RUN_TEST(test_BlockLMSFilter_train_1);
+    RUN_TEST(test_BlockLMSFilter_train);
     return UNITY_END();
 }
