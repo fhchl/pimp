@@ -13,6 +13,80 @@ void tearDown(void) {}
 #define N 4
 #define Nodd 5
 
+struct data {
+    int len;
+    pfloat in[10];
+    pcomplex out[10];
+};
+
+void run(struct data* tests, size_t n) {
+    for (size_t i = 0; i < n; ++i) {
+        struct data t = tests[i];
+        rfft_plan plan = make_rfft_plan(t.len);
+        pcomplex* out = malloc((t.len/2 + 1) * sizeof *out);
+        pfloat* in = malloc(t.len * sizeof *in);
+
+        rfft(plan, t.in, out);
+        PRINT_ARRAY(t.out, t.len/2+1);
+        PRINT_ARRAY(out, t.len/2+1);
+        TEST_ARRAY_WITHIN(1e-8, t.out, out, t.len/2 + 1);
+
+        irfft(plan, out, in);
+        PRINT_ARRAY(t.in, t.len);
+        PRINT_ARRAY(in, t.len);
+        TEST_ARRAY_WITHIN(1e-8, t.in, in, t.len);
+    }
+}
+
+void test_even_length() {
+    struct data tests[] = {
+        {
+            .len = 4,
+            .in = {1, 0, 0, 0},
+            .out = {1, 1, 1}
+        },
+        {
+            .len = 4,
+            .in = {0, 1, 0, 0},
+            .out = {1, -I, -1}
+        },
+        {
+            .len = 4,
+            .in = {0, 0, 1, 0},
+            .out = {1, -1, 1}
+        },
+        {
+            .len = 4,
+            .in = {0, 0, 0, 1},
+            .out = {1, I, -1}
+        },
+    };
+
+    run(tests, 4);
+}
+
+void test_odd_length() {
+    struct data tests[] = {
+        {
+            .len = 3,
+            .in = {1, 0, 0},
+            .out = {1, 1, 1}
+        },
+        {
+            .len = 3,
+            .in = {0, 1, 0},
+            .out = {1, -0.5-0.8660254*I}
+        },
+        {
+            .len = 3,
+            .in = {0, 0, 1},
+            .out = {1, -0.5+0.8660254*I}
+        },
+    };
+
+    run(tests, 3);
+}
+
 void test_fft_even(void) {
     rfft_plan plan = make_rfft_plan(N);
 
@@ -111,6 +185,8 @@ void test_fft_odd(void) {
 // not needed when using generate_test_runner.rb
 int main(void) {
     UNITY_BEGIN();
+    RUN_TEST(test_even_length);
+    RUN_TEST(test_odd_length);
     RUN_TEST(test_fft_even);
     RUN_TEST(test_fft_odd);
     RUN_TEST(test_fft_even_dynamic);
