@@ -41,7 +41,7 @@ void test_RLSFilter_update_predict(void) {
     AudioBuf* ys   = audiobuf_from_wav("../tests/data/y_1.wav");
     AudioBuf* xbuf = audiobuf_new(0, len, calloc(len, sizeof(pfloat)));
 
-    pfloat y_hat=0, x=0, y=0, e=0;
+    pfloat y_hat, x, y=0, e=0;
     for (size_t i = 0; i < xs->len; i++) {
         x = xs->data[i];
         y = ys->data[i];

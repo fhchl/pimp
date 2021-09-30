@@ -67,13 +67,12 @@ void lms_train(LMSFilter* self, size_t len, pfloat xs[len], pfloat ys[len]) {
     pfloat* xbuf = calloc(self->len, sizeof *xbuf);
     CHECK_ALLOC(xbuf);
 
-    pfloat y_hat, x, y, e;
     for (size_t i = 0; i < len; i++) {
-        x = xs[i];
-        y = ys[i];
+        pfloat x = xs[i];
+        pfloat y = ys[i];
         left_extend(self->len, xbuf, x);
-        y_hat = lms_predict(self, xbuf);
-        e     = y - y_hat;
+        pfloat y_hat = lms_predict(self, xbuf);
+        pfloat e     = y - y_hat;
         lms_update(self, xbuf, e);
     }
 
@@ -174,14 +173,10 @@ void rls_train(RLSFilter* self, size_t len, pfloat xs[len], pfloat ys[len]) {
     pfloat* xbuf = calloc(self->len, sizeof *xbuf);
     CHECK_ALLOC(xbuf);
 
-    pfloat y_hat, x, y, e;
     for (size_t i = 0; i < len; i++) {
-        x = xs[i];
-        y = ys[i];
-        left_extend(self->len, xbuf, x);
-        y_hat = rls_predict(self, xbuf);
-        e     = y - y_hat;
-        rls_update(self, xbuf, e);
+        left_extend(self->len, xbuf, xs[i]);
+        pfloat y_hat = rls_predict(self, xbuf);
+        rls_update(self, xbuf, ys[i] - y_hat);
     }
 
     free(xbuf);
@@ -312,7 +307,7 @@ void blms_train(BlockLMSFilter* self, size_t n, pfloat xs[n], pfloat ys[n]) {
     CHECK_ALLOC(e);
     CHECK_ALLOC(ebuf);
 
-    for (size_t i = 0; i < n / blocklen; i++) {
+    for (size_t block = 0; block < n / blocklen; block++) {
         block_right_extend(2 * len, blocklen, xbuf, x);
         rfft(self->plan, xbuf, Xbuf);
         blms_predict(self, Xbuf, y_hat);

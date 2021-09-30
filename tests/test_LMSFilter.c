@@ -78,21 +78,34 @@ void test_LMSFilter_train_0(void) {
     lms_destroy(filt);
 }
 
-void test_LMSFilter_train_1(void) {
-    size_t     len = 2;
-    pfloat     w_1[]  = {0, 0.5};
-    LMSFilter* filt   = lms_init(len, 0.1, 1);
+#define LEN 8
 
-    AudioBuf* xs = audiobuf_from_wav("../tests/data/x.wav");
-    AudioBuf* ys = audiobuf_from_wav("../tests/data/y_1.wav");
+void test_LMSFilter_train(void) {
+    pfloat w0[LEN] = {0.5, 0};
+    pfloat w1[LEN] = {0, 0.5};
+    pfloat w3[LEN] = {0, 0.5, -0.5};
+    pfloat w4[LEN] = {0.1, 0.5, -0.5};
 
-    lms_train(filt, xs->len, xs->data, ys->data);
+    pfloat* wtrue[4] = {w0, w1, w3, w4};
 
-    TEST_ARRAY_WITHIN(1e-5, w_1, filt->w, len);
+    AudioBuf* x = audiobuf_from_wav("../tests/data/x.wav");
+    for (size_t i = 0; i < sizeof(wtrue) / sizeof(*wtrue); i++)
+    {
+        LMSFilter* lms = lms_init(LEN, 0.1, 1);
 
-    audiobuf_destroy(xs);
-    audiobuf_destroy(ys);
-    lms_destroy(filt);
+        printf("test_LMSFilter_train: %ld \n", i);
+        char path[256];
+        snprintf(path, sizeof(path), "../tests/data/y_%ld.wav", i);
+        AudioBuf* y = audiobuf_from_wav(path);
+
+        lms_train(lms, x->len, x->data, y->data);
+
+        TEST_ARRAY_WITHIN(1e-5, wtrue[i], lms->w, LEN);
+
+        audiobuf_destroy(y);
+        lms_destroy(lms);
+    }
+    audiobuf_destroy(x);
 }
 
 // not needed when using generate_test_runner.rb
@@ -100,7 +113,6 @@ int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_LMSFilter_predict);
     RUN_TEST(test_LMSFilter_update_predict);
-    RUN_TEST(test_LMSFilter_train_0);
-    RUN_TEST(test_LMSFilter_train_1);
+    RUN_TEST(test_LMSFilter_train);
     return UNITY_END();
 }
