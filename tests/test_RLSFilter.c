@@ -95,10 +95,43 @@ void test_RLSFilter_train_1(void) {
     rls_destroy(filt);
 }
 
+
+#define LEN 8
+
+void test_RLSFilter_train(void) {
+    pfloat w0[LEN] = {0.5, 0};
+    pfloat w1[LEN] = {0, 0.5};
+    pfloat w3[LEN] = {0, 0.5, -0.5};
+    pfloat w4[LEN] = {0.1, 0.5, -0.5};
+
+    pfloat* wtrue[4] = {w0, w1, w3, w4};
+
+    AudioBuf* x = audiobuf_from_wav("../tests/data/x.wav");
+    for (size_t i = 0; i < sizeof(wtrue) / sizeof(*wtrue); i++)
+    {
+        RLSFilter* rls = rls_init(LEN, 1, 10000);
+
+        printf("test_RLSFilter_train: %ld \n", i);
+        char path[256];
+        snprintf(path, sizeof(path), "../tests/data/y_%ld.wav", i);
+        AudioBuf* y = audiobuf_from_wav(path);
+
+        rls_train(rls, x->len, x->data, y->data);
+
+        TEST_ARRAY_WITHIN(1e-5, wtrue[i], rls->w, LEN);
+
+        audiobuf_destroy(y);
+        rls_destroy(rls);
+    }
+    audiobuf_destroy(x);
+}
+
+
 // not needed when using generate_test_runner.rb
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_RLSFilter_predict);
     RUN_TEST(test_RLSFilter_update_predict);
+    RUN_TEST(test_RLSFilter_train);
     return UNITY_END();
 }
