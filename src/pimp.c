@@ -6,6 +6,8 @@
 
 #include "pimp.h"
 
+#define EPS 1e-8
+
 void left_extend(size_t len, pfloat buf[len], pfloat x) {
     memmove(&buf[1], &buf[0], (len - 1) * sizeof *buf);
     buf[0] = x;
@@ -27,8 +29,9 @@ LMSFilter* lms_init(size_t len, pfloat stepsize, pfloat leakage) {
     CHECK_ALLOC(lms->w);
     lms->len      = len;
     lms->stepsize = stepsize;
-    lms->eps      = 1e-8;
     lms->leakage  = leakage;
+    lms->avg = 0.5;
+    lms->Pavg = 1;
     return lms;
 }
 
@@ -55,8 +58,9 @@ void lms_update(LMSFilter* self, pfloat x[self->len], pfloat e) {
     pfloat pow = 0;
     for (size_t i = 0; i < self->len; i++)
         pow += x[i] * x[i];
+    self->Pavg = self->avg * pow + (1 - self->avg) * self->Pavg;
 
-    pfloat stepsize = self->stepsize / (pow + self->eps);
+    pfloat stepsize = self->stepsize / (self->Pavg + EPS);
     for (size_t i = 0; i < self->len; i++) {
         self->w[i] *= self->leakage;
         self->w[i] += stepsize * e * x[i];
@@ -142,7 +146,7 @@ void rls_update(RLSFilter* self, pfloat x[self->len], pfloat e) {
     // P <- alpha^2 P + I q
     for (size_t i = 0; i < n; i++) {
         for (size_t j = 0; j < n; j++)
-            self->P[i][j] *= self->alpha * self->alpha;
+            self->P[i][j] *= pow(self->alpha, 2);
         self->P[i][i] += self->q;
     }
     // Px <- P x  // TODO: BLIS
@@ -152,9 +156,8 @@ void rls_update(RLSFilter* self, pfloat x[self->len], pfloat e) {
     for (size_t i = 0; i < n; i++)
         norm += self->Px[i] * x[i];
     // k <- P x (x^T P x + I r)^-1
-    pfloat eps = 1e-8;
     for (size_t i = 0; i < n; i++)
-        self->k[i] = self->Px[i] / (norm + eps);
+        self->k[i] = self->Px[i] / (norm + EPS);
     // w <- w + k e
     for (size_t i = 0; i < n; i++)
         self->w[i] += self->k[i] * e;
@@ -214,7 +217,6 @@ BlockLMSFilter* blms_init(size_t len, size_t blocklen, pfloat stepsize, pfloat l
     blms->len      = len;
     blms->blocklen = blocklen;
     blms->stepsize = stepsize;
-    blms->eps      = 1e-8;
     blms->leakage  = leakage;
     blms->avg      = 0.5;
 
@@ -262,7 +264,6 @@ void blms_predict(BlockLMSFilter* self, const pcomplex X[self->len + 1], pfloat 
 }
 
 void blms_update(BlockLMSFilter* self, const pcomplex X[self->len + 1], pfloat e[self->len]) {
-    pfloat eps = 1e-5;
 
     // update PSD estimate
     for (size_t i = 0; i < self->len + 1; i++)
@@ -283,7 +284,7 @@ void blms_update(BlockLMSFilter* self, const pcomplex X[self->len + 1], pfloat e
     // W <- leakage * W + stepsize/(|X|^2 + eps) * conj(X) * E
     for (size_t i = 0; i < self->len + 1; i++) {
         // U = stepsize/(|X|^2 + eps) * conj(X) * E
-        U[i] *= self->stepsize / (self->Pavg[i] + eps) * conj(X[i]);
+        U[i] *= self->stepsize / (self->Pavg[i] + EPS) * conj(X[i]);
         //W <- leakage * W + U
         self->W[i] *= self->leakage;
         self->W[i] += U[i];

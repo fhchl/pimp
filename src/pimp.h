@@ -23,8 +23,9 @@ typedef struct {
     size_t  len;
     pfloat  stepsize;
     pfloat  leakage;
-    pfloat  eps;
     pfloat* w;
+    pfloat  avg;
+    pfloat  Pavg;
 } LMSFilter;
 
 LMSFilter* lms_init(size_t len, pfloat stepsize, pfloat leakage);
@@ -75,7 +76,6 @@ typedef struct {
     size_t    blocklen;
     pfloat    stepsize;
     pfloat    leakage;
-    pfloat    eps;
     pcomplex* W;
     pfloat*   Pavg;
     pfloat    avg; // PSD averaging time constant
@@ -87,7 +87,7 @@ typedef struct {
 BlockLMSFilter* blms_init(size_t len, size_t blocklen, pfloat stepsize, pfloat leakage);
 void            blms_destroy(BlockLMSFilter* self);
 void            blms_set_w(BlockLMSFilter* self, const pfloat w[self->len]);
-void            blms_get_w(BlockLMSFilter* self, pfloat w[self->len]);
+void            blms_get_w(BlockLMSFilter* self, pfloat w[2*self->len]);
 void            blms_update(BlockLMSFilter* self, const pcomplex X[self->len + 1], pfloat e[self->blocklen]);
 void            blms_predict(BlockLMSFilter* self, const pcomplex X[self->len + 1], pfloat y[self->blocklen]);
 void            blms_train(BlockLMSFilter* self, size_t n, pfloat x[n], pfloat y[n]);
