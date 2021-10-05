@@ -29,12 +29,12 @@ void run(struct data* tests, size_t n) {
         rfft(plan, t.in, out);
         PRINT_ARRAY(t.out, t.len/2+1);
         PRINT_ARRAY(out, t.len/2+1);
-        TEST_ARRAY_WITHIN(1e-8, t.out, out, t.len/2 + 1);
+        TEST_ARRAY_WITHIN(1e-7, t.out, out, t.len/2 + 1);
 
         irfft(plan, out, in);
         PRINT_ARRAY(t.in, t.len);
         PRINT_ARRAY(in, t.len);
-        TEST_ARRAY_WITHIN(1e-8, t.in, in, t.len);
+        TEST_ARRAY_WITHIN(1e-7, t.in, in, t.len);
     }
 }
 
@@ -186,9 +186,14 @@ void test_fft_odd(void) {
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_even_length);
-    RUN_TEST(test_odd_length);
-    RUN_TEST(test_fft_even);
-    RUN_TEST(test_fft_odd);
     RUN_TEST(test_fft_even_dynamic);
+    RUN_TEST(test_fft_even);
+
+    #if PIMP_WITH_NE10 == 0
+    // ne10 fft only supports even fft sizes
+    RUN_TEST(test_odd_length);
+    RUN_TEST(test_fft_odd);
+    #endif
+
     return UNITY_END();
 }

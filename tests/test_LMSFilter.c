@@ -85,8 +85,9 @@ void test_LMSFilter_train(void) {
     pfloat w1[LEN] = {0, 0.5};
     pfloat w3[LEN] = {0, 0.5, -0.5};
     pfloat w4[LEN] = {0.1, 0.5, -0.5};
+    pfloat w5[LEN] = {0.1, 0.5, -0.5, 1};
 
-    pfloat* wtrue[4] = {w0, w1, w3, w4};
+    pfloat* wtrue[] = {w0, w1, w3, w4, w5};
 
     AudioBuf* x = audiobuf_from_wav("../tests/data/x.wav");
     for (size_t i = 0; i < sizeof(wtrue) / sizeof(*wtrue); i++)

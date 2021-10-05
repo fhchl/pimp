@@ -1,28 +1,27 @@
 # %%
 import numpy as np
-import matplotlib.pyplot as pl
 import soundfile as sf
 import adafilt
 import measuretf.signals
 # %%
 np.random.seed(123)
 
-samplerate = 1000 # Hertz
-rectime = 1 # second
+samplerate = 1000  # Hertz
+rectime = 1  # second
 gain = 0.01
 x = gain * np.random.randn(rectime * int(samplerate))
 x[x > 1] = 1
 x[x < -1] = -1
 
 
-ws = [[0.5], [0, 0.5], [0, 0.5, -0.5], [0.1, 0.5, -0.5]]
+ws = [[0.5], [0, 0.5], [0, 0.5, -0.5], [0.1, 0.5, -0.5], [0.1, 0.5, -0.5, 1]]
 
 y = []
 for i, w in enumerate(ws):
     y = adafilt.olafilt(w, x)
-    sf.write(f'data/y_{i}.wav', y, samplerate, subtype='FLOAT');
+    sf.write(f'data/y_{i}.wav', y, samplerate, subtype='FLOAT')
 
-sf.write('data/x.wav', x, samplerate, subtype='FLOAT');
+sf.write('data/x.wav', x, samplerate, subtype='FLOAT')
 
 # %%
 sr = 1000
