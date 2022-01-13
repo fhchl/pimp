@@ -9,11 +9,13 @@
 #define EPS 1e-8
 
 void left_extend(size_t len, pfloat buf[len], pfloat x) {
+    // TODO: replace by ring buffer
     memmove(&buf[1], &buf[0], (len - 1) * sizeof *buf);
     buf[0] = x;
 }
 
 void block_right_extend(size_t len, size_t blocklen, pfloat buf[len], pfloat x[blocklen]) {
+    // TODO: replace by ring buffer
     assert(len >= blocklen);
     memmove(&buf[0], &buf[blocklen], (len - blocklen) * sizeof *buf);
     memcpy(&buf[len - blocklen], &x[0], blocklen * sizeof *buf);
