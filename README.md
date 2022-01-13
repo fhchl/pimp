@@ -11,13 +11,29 @@ Clone
 	cd pimp
 	git submodule init && git submodule update
 
-Build
+Build without fft support
 
 	mkdir build
 	cd build
 	cmake ..
+	make
 
-Test
+Build with [pocketfft](https://gitlab.mpcdf.mpg.de/mtr/pocketfft) for `BlockLMSFilter` on x86
+
+	cmake .. -D PIMP_FFTLIB=pocketfft
+	make
+
+Build with [Ne10](https://projectne10.github.io/Ne10/) for `BlockLMSFilter` on ARM
+
+	cmake .. -D PIMP_FFTLIB=pocketfft
+	make
+
+Build for `float` instead of `double`
+
+	cmake .. -D PIMP_USE_DOUBLE=0
+	make
+
+Run tests
 
 	make test
 
