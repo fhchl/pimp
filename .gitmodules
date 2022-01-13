@@ -1,6 +1,6 @@
 [submodule "external/libwav"]
 	path = external/libwav
-	url = https://github.com/brglng/libwav.git
+	url = https://github.com/fhchl/libwav.git
 [submodule "external/Unity"]
 	path = external/Unity
 	url = https://github.com/ThrowTheSwitch/Unity.git
