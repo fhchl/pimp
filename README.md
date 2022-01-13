@@ -1,5 +1,15 @@
 
-# Build
+# pimp
+
+Naive implementation of some adaptive filters in C, also for arm, so runs on [Bela](https://bela.io/).
+
+## Get started
+
+Clone
+
+	git clone https://github.com/fhchl/pimp.git
+	cd pimp
+	git submodule init && git submodule update
 
 Build
 
