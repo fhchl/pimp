@@ -1,21 +1,12 @@
 [submodule "external/libwav"]
 	path = external/libwav
 	url = https://github.com/brglng/libwav.git
-[submodule "external/libsoundio"]
-	path = external/libsoundio
-	url = https://github.com/andrewrk/libsoundio.git
 [submodule "external/Unity"]
 	path = external/Unity
 	url = https://github.com/ThrowTheSwitch/Unity.git
 [submodule "external/pocketfft"]
 	path = external/pocketfft
 	url = https://gitlab.mpcdf.mpg.de/mtr/pocketfft
-[submodule "external/muFFT"]
-	path = external/muFFT
-	url = https://github.com/Themaister/muFFT.git
-[submodule "external/pffft"]
-	path = external/pffft
-	url = https://bitbucket.org/jpommier/pffft.git
 [submodule "external/Ne10"]
 	path = external/Ne10
 	url = https://github.com/projectNe10/Ne10.git
