@@ -6,6 +6,12 @@ from scipy.signal import lfilter
 # change directory to parent dir of this script
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+# make data folder
+try:
+    os.mkdir("data")
+except FileExistsError:
+    pass
+
 # generate some random input
 np.random.seed(123)
 samplerate = 1000  # Hertz
