@@ -51,27 +51,12 @@ void test_BlockLMSFilter_predict(void) {
     pcomplex Xbuf[LEN2 + 1]   = {0};
     pfloat   y_hat[BLOCKLEN2] = {0};
 
-    // printf("W:\t");
-    // PRINT_ARRAY(blms->W, LEN2+1);
-
     for (size_t i = 0; i < in->len / BLOCKLEN2; i++) {
         // prepare Xbuf
         block_right_extend(2 * LEN2, BLOCKLEN2, xbuf, x);
         rfft(blms->plan, xbuf, Xbuf);
 
         blms_predict(blms, Xbuf, y_hat);
-
-        // printf("x:\t");
-        // PRINT_ARRAY(x, BLOCKLEN2);
-        // printf("xbuf:\t");
-        // PRINT_ARRAY(xbuf, 2*LEN2);
-        // printf("y:\t");
-        // PRINT_ARRAY(y, BLOCKLEN2);
-        // printf("yhat:\t");
-        // PRINT_ARRAY(y_hat, BLOCKLEN2);
-        // printf("_Y:\t");
-        // PRINT_ARRAY((pfloat *)(blms->_Y), 2*LEN2); // somehow interleaved samples are copied into yhat
-        // printf("\n");
 
         TEST_ARRAY_WITHIN(1e-5, y, y_hat, BLOCKLEN2);
 

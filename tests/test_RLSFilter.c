@@ -61,41 +61,6 @@ void test_RLSFilter_update_predict(void) {
     rls_destroy(filt);
 }
 
-void test_RLSFilter_train_0(void) {
-    size_t     len = 3;
-    pfloat     w_0[]  = {0.5, 0, 0};
-    RLSFilter* filt   = rls_init(len, 1, 10);
-
-    AudioBuf* xs = audiobuf_from_wav("../tests/data/x.wav");
-    AudioBuf* ys = audiobuf_from_wav("../tests/data/y_0.wav");
-
-    rls_train(filt, xs->len, xs->data, ys->data);
-
-    TEST_ARRAY_WITHIN(1e-5, w_0, filt->w, len);
-
-    audiobuf_destroy(xs);
-    audiobuf_destroy(ys);
-    rls_destroy(filt);
-}
-
-void test_RLSFilter_train_1(void) {
-    size_t     len = 3;
-    pfloat     w_1[]  = {0, 0.5, 0};
-    RLSFilter* filt   = rls_init(len, 1, 10);
-
-    AudioBuf* xs = audiobuf_from_wav("../tests/data/x.wav");
-    AudioBuf* ys = audiobuf_from_wav("../tests/data/y_1.wav");
-
-    rls_train(filt, xs->len, xs->data, ys->data);
-
-    TEST_ARRAY_WITHIN(1e-5, w_1, filt->w, len);
-
-    audiobuf_destroy(xs);
-    audiobuf_destroy(ys);
-    rls_destroy(filt);
-}
-
-
 #define LEN 8
 
 void test_RLSFilter_train(void) {

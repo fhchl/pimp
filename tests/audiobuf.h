@@ -18,7 +18,6 @@ AudioBuf* audiobuf_new(uint samplerate, size_t len, pfloat data[len]);
 AudioBuf* audiobuf_from_wav(char* path);
 void      audiobuf_destroy(AudioBuf* buf);
 void      audiobuf_left_extend(AudioBuf* buf, pfloat x);
-AudioBuf* create_sweep(pfloat duration, uint sr, pfloat amp, pfloat postsilence);
 
 /*
 * Definitions
@@ -77,24 +76,4 @@ void audiobuf_destroy(AudioBuf* buf) {
 void audiobuf_left_extend(AudioBuf* buf, pfloat x) {
     memmove(&buf->data[1], &buf->data[0], (buf->len - 1) * sizeof *(buf->data));
     buf->data[0] = x;
-}
-
-AudioBuf* create_sweep(pfloat duration, uint sr, pfloat amp, pfloat postsilence) {
-    size_t len = (size_t)round(duration * sr);
-    assert(len > 2);
-    size_t len_silence = (size_t)round(postsilence * sr);
-
-    double omega_start = 2 * M_PI * sr / len;
-    double omega_end   = 2 * M_PI * sr / 2;
-
-    pfloat* sweep = calloc(len + len_silence, sizeof *sweep);
-    pfloat  phase, logdiv, t;
-    for (size_t i = 0; i < len; i++) {
-        t        = i * duration / len;
-        logdiv   = log(omega_end / omega_start);
-        phase    = omega_start * duration / logdiv * (exp(t / duration * logdiv) - 1);
-        sweep[i] = sin(phase) * amp;
-    }
-
-    return audiobuf_new(sr, len + len_silence, sweep);
 }
