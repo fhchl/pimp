@@ -16,7 +16,7 @@ if(NOT DEFINED PIMP_FFTLIB)
 endif()
 
 if(NOT DEFINED PIMP_BUILD_TESTS)
-    set(PIMP_BUILD_TESTS ON CACHE BOOL "build tests")
+    set(PIMP_BUILD_TESTS OFF CACHE BOOL "build tests")
 endif()
 
 if(NOT DEFINED PIMP_TEST_FFTS)
@@ -60,6 +60,10 @@ endif()
 if(PIMP_BUILD_TESTS)
     enable_testing()
 
+    # run python script to create test data
+    execute_process(COMMAND python tests/make_wavs.py
+        WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
+
     add_subdirectory(external/Unity)
     target_compile_definitions(unity PUBLIC -DUNITY_INCLUDE_DOUBLE)
 
@@ -74,14 +78,6 @@ if(PIMP_BUILD_TESTS)
         PRIVATE tests)
     target_link_libraries(${TEST_AUDIOBUF} ${PROJECT_NAME} wav::wav)
     add_test(${TEST_AUDIOBUF} ./${TEST_AUDIOBUF} .)
-
-    set(TEST_TFEST test_TFest)
-    add_executable(${TEST_TFEST} tests/${TEST_TFEST}.c)
-    target_include_directories(${TEST_TFEST}
-        PRIVATE src
-        PRIVATE tests)
-    target_link_libraries(${TEST_TFEST} ${PROJECT_NAME} wav::wav)
-    add_test(${TEST_TFEST} ./${TEST_TFEST} .)
 
     set(TEST_LMSFILTER test_LMSFilter)
     add_executable(${TEST_LMSFILTER} tests/${TEST_LMSFILTER}.c)
