@@ -61,7 +61,7 @@ if(PIMP_BUILD_TESTS)
     enable_testing()
 
     # run python script to create test data
-    execute_process(COMMAND python tests/make_wavs.py
+    execute_process(COMMAND python3 tests/make_wavs.py
         WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
 
     add_subdirectory(external/Unity)
