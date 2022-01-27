@@ -14,7 +14,7 @@ void left_extend(size_t len, pfloat buf[len], pfloat x) {
     buf[0] = x;
 }
 
-void block_right_extend(size_t len, size_t blocklen, pfloat buf[len], pfloat x[blocklen]) {
+void block_right_extend(size_t len, size_t blocklen, pfloat buf[len], const pfloat x[blocklen]) {
     // TODO: replace by ring buffer
     assert(len >= blocklen);
     memmove(&buf[0], &buf[blocklen], (len - blocklen) * sizeof *buf);
@@ -37,7 +37,7 @@ LMSFilter* lms_init(size_t len, pfloat stepsize, pfloat leakage) {
     return lms;
 }
 
-void lms_set_w(LMSFilter* self, pfloat w[self->len]) {
+void lms_set_w(LMSFilter* self, const pfloat w[self->len]) {
     for (size_t i = 0; i < self->len; i++)
         self->w[i] = w[i];
 }
@@ -49,14 +49,14 @@ void lms_destroy(LMSFilter* self) {
     }
 }
 
-pfloat lms_predict(LMSFilter* self, pfloat x[self->len]) {
+pfloat lms_predict(LMSFilter* self, const pfloat x[self->len]) {
     pfloat y = 0;
     for (size_t i = 0; i < self->len; i++)
         y += self->w[i] * x[i];
     return y;
 }
 
-void lms_update(LMSFilter* self, pfloat x[self->len], pfloat e) {
+void lms_update(LMSFilter* self, const pfloat x[self->len], pfloat e) {
     pfloat pow = 0;
     for (size_t i = 0; i < self->len; i++)
         pow += x[i] * x[i];
@@ -69,19 +69,16 @@ void lms_update(LMSFilter* self, pfloat x[self->len], pfloat e) {
     }
 }
 
-void lms_train(LMSFilter* self, size_t len, pfloat xs[len], pfloat ys[len]) {
+void lms_train(LMSFilter* self, size_t len, const pfloat x[len], const pfloat y[len]) {
     pfloat* xbuf = calloc(self->len, sizeof *xbuf);
     CHECK_ALLOC(xbuf);
 
     for (size_t i = 0; i < len; i++) {
-        pfloat x = xs[i];
-        pfloat y = ys[i];
-        left_extend(self->len, xbuf, x);
+        left_extend(self->len, xbuf, x[i]);
         pfloat y_hat = lms_predict(self, xbuf);
-        pfloat e     = y - y_hat;
+        pfloat e     = y[i] - y_hat;
         lms_update(self, xbuf, e);
     }
-
     free(xbuf);
 }
 
@@ -128,12 +125,12 @@ void rls_destroy(RLSFilter* self) {
     }
 }
 
-void rls_set_w(RLSFilter* self, pfloat w[self->len]) {
+void rls_set_w(RLSFilter* self, const pfloat w[self->len]) {
     for (size_t i = 0; i < self->len; i++)
         self->w[i] = w[i];
 }
 
-void mat_vec_mul(size_t n, pfloat y[n], pfloat* A[n], pfloat x[n]) {
+void mat_vec_mul(size_t n, pfloat y[n], pfloat* A[n], const pfloat x[n]) {
     memset(y, 0, n * sizeof *y);
     for (size_t i = 0; i < n; i++) {
         for (size_t j = 0; j < n; j++) {
@@ -142,7 +139,7 @@ void mat_vec_mul(size_t n, pfloat y[n], pfloat* A[n], pfloat x[n]) {
     }
 }
 
-void rls_update(RLSFilter* self, pfloat x[self->len], pfloat e) {
+void rls_update(RLSFilter* self, const pfloat x[self->len], pfloat e) {
     size_t n = self->len;
 
     // P <- alpha^2 P + I q
@@ -173,21 +170,21 @@ void rls_update(RLSFilter* self, pfloat x[self->len], pfloat e) {
             self->P[i][j] = (self->P[i][j] + self->P[j][i]) / 2;
 }
 
-pfloat rls_predict(RLSFilter* self, pfloat x[self->len]) {
+pfloat rls_predict(RLSFilter* self, const pfloat x[self->len]) {
     pfloat y = 0;
     for (size_t i = 0; i < self->len; i++)
         y += self->w[i] * x[i];
     return y;
 }
 
-void rls_train(RLSFilter* self, size_t len, pfloat xs[len], pfloat ys[len]) {
+void rls_train(RLSFilter* self, size_t len, const pfloat x[len], const pfloat y[len]) {
     pfloat* xbuf = calloc(self->len, sizeof *xbuf);
     CHECK_ALLOC(xbuf);
 
     for (size_t i = 0; i < len; i++) {
-        left_extend(self->len, xbuf, xs[i]);
+        left_extend(self->len, xbuf, x[i]);
         pfloat y_hat = rls_predict(self, xbuf);
-        rls_update(self, xbuf, ys[i] - y_hat);
+        rls_update(self, xbuf, y[i] - y_hat);
     }
 
     free(xbuf);
@@ -299,12 +296,10 @@ void blms_update(BlockLMSFilter* self, const pcomplex X[self->len + 1], pfloat e
     rfft(self->plan, w, self->W);
 }
 
-void blms_train(BlockLMSFilter* self, size_t n, pfloat xs[n], pfloat ys[n]) {
+void blms_train(BlockLMSFilter* self, size_t n, const pfloat x[n], const pfloat y[n]) {
     size_t len      = self->len;
     size_t blocklen = self->blocklen;
 
-    pfloat*   x     = xs;
-    pfloat*   y     = ys;
     pfloat*   xbuf  = calloc(2 * len, sizeof *xbuf);
     pcomplex* Xbuf  = calloc(len + 1, sizeof *Xbuf);
     pfloat*   y_hat = calloc(blocklen, sizeof *y_hat);

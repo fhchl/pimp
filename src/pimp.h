@@ -17,7 +17,7 @@ typedef DTYPE         pfloat;
 typedef _Complex DTYPE pcomplex;
 
 void left_extend(size_t len, pfloat buf[len], pfloat x);
-void block_right_extend(size_t len, size_t blocklen, pfloat buf[len], pfloat x[blocklen]);
+void block_right_extend(size_t len, size_t blocklen, pfloat buf[len], const pfloat x[blocklen]);
 
 typedef struct {
     size_t  len;
@@ -30,10 +30,10 @@ typedef struct {
 
 LMSFilter* lms_init(size_t len, pfloat stepsize, pfloat leakage);
 void       lms_destroy(LMSFilter* self);
-void       lms_set_w(LMSFilter* self, pfloat w[self->len]);
-void       lms_update(LMSFilter* self, pfloat x[self->len], pfloat e);
-pfloat     lms_predict(LMSFilter* self, pfloat x[self->len]);
-void       lms_train(LMSFilter* self, size_t n, pfloat xs[n], pfloat ys[n]);
+void       lms_set_w(LMSFilter* self, const pfloat w[self->len]);
+void       lms_update(LMSFilter* self, const pfloat x[self->len], pfloat e);
+pfloat     lms_predict(LMSFilter* self, const pfloat x[self->len]);
+void       lms_train(LMSFilter* self, size_t n, const pfloat x[n], const pfloat y[n]);
 
 typedef struct {
     size_t   len;   // filter length
@@ -48,10 +48,10 @@ typedef struct {
 
 RLSFilter* rls_init(size_t len, pfloat alpha, pfloat Pinit);
 void       rls_destroy(RLSFilter* self);
-void       rls_set_w(RLSFilter* self, pfloat w[self->len]);
-void       rls_update(RLSFilter* self, pfloat x[self->len], pfloat e);
-pfloat     rls_predict(RLSFilter* self, pfloat x[self->len]);
-void       rls_train(RLSFilter* self, size_t n, pfloat xs[n], pfloat ys[n]);
+void       rls_set_w(RLSFilter* self, const pfloat w[self->len]);
+void       rls_update(RLSFilter* self, const pfloat x[self->len], pfloat e);
+pfloat     rls_predict(RLSFilter* self, const pfloat x[self->len]);
+void       rls_train(RLSFilter* self, size_t n, const pfloat x[n], const pfloat y[n]);
 
 #if PIMP_WITH_POCKETFFT || PIMP_WITH_NE10
 
@@ -90,7 +90,7 @@ void            blms_set_w(BlockLMSFilter* self, const pfloat w[self->len]);
 void            blms_get_w(BlockLMSFilter* self, pfloat w[2*self->len]);
 void            blms_update(BlockLMSFilter* self, const pcomplex X[self->len + 1], pfloat e[self->blocklen]);
 void            blms_predict(BlockLMSFilter* self, const pcomplex X[self->len + 1], pfloat y[self->blocklen]);
-void            blms_train(BlockLMSFilter* self, size_t n, pfloat x[n], pfloat y[n]);
+void            blms_train(BlockLMSFilter* self, size_t n, const pfloat x[n], const pfloat y[n]);
 
 #endif
 
