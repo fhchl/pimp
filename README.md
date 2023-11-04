@@ -1,7 +1,13 @@
 
 # pimp
 
-Naive implementation of some adaptive filters in C, also for arm, so runs on [Bela](https://bela.io/).
+Naive implementation of some adaptive filters in C. Also for ARM, so runs on [Bela](https://bela.io/).
+
+The following algorithms are implemented (and tested!):
+
+- Least-mean-squared filter
+- Fast block-wise Least-mean-squared filter
+- Recursive-Least-Squares filter
 
 ## Get started
 
